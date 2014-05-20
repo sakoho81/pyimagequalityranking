@@ -1,4 +1,6 @@
+import numpy
 from scipy import ndimage
+
 from image import Image
 
 class Filter(object):
@@ -32,13 +34,13 @@ class LocalImageQuality(Filter):
     of details
     """
 
-    def __init__(self, image, physical=false):
+    def __init__(self, image, physical=False):
 
         Filter.__init__(image, physical)
 
         self.data_temp = None
         self.kernel_size = []
-        self.number_of_samples = 0
+        self.number_of_samples = 20
 
     def set_smoothing_kernel_size(self, size):
 
@@ -84,12 +86,29 @@ class LocalImageQuality(Filter):
 
 
     def __find_sampling_positions(self):
+        peaks = numpy.percentile(self.data_temp, 99)
+        return numpy.where(self.data_temp >= peaks)
 
 
-    def calculate_image_quality(self):
+    def calculate_image_quality(self, kernel=None, samples=None):
         """
 
         """
+        if samples is not None:
+            self.set_number_of_samples(samples)
+
+        if kernel is not None:
+            self.set_smoothing_kernel_size(kernel)
+
+        assert len(self.kernel_size) != 0
+
+        if self.data_temp is None:
+            self.run_gaussian_smoothing()
+
+        positions = self.__find_sampling_positions()
+
+
+
 
 
 
