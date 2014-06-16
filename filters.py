@@ -36,7 +36,7 @@ class LocalImageQuality(Filter):
 
     def __init__(self, image, physical=False):
 
-        Filter.__init__(image, physical)
+        Filter.__init__(self, image, physical)
 
         self.data_temp = None
         self.kernel_size = []
@@ -74,7 +74,7 @@ class LocalImageQuality(Filter):
         self.data_temp = ndimage.uniform_filter(self.data[:], size=self.kernel_size)
 
         if return_result:
-            return self.data_temp
+            return Image(self.data_temp, self.spacing)
 
     def run_gaussian_smoothing(self, return_result=False):
         self.data_temp = ndimage.gaussian_filter(self.data[:], self.kernel_size)
@@ -82,13 +82,12 @@ class LocalImageQuality(Filter):
         if return_result:
             return self.data_temp
 
-    def __calculate_entropy(self):
+    def _calculate_entropy(self):
+        return None
 
-
-    def __find_sampling_positions(self):
-        peaks = numpy.percentile(self.data_temp, 99)
-        return numpy.where(self.data_temp >= peaks)
-
+    def find_sampling_positions(self):
+        peaks = numpy.percentile(self.data_temp, 85)
+        return numpy.where(self.data_temp >= peaks, 1, 0)
 
     def calculate_image_quality(self, kernel=None, samples=None):
         """
@@ -105,7 +104,7 @@ class LocalImageQuality(Filter):
         if self.data_temp is None:
             self.run_gaussian_smoothing()
 
-        positions = self.__find_sampling_positions()
+        positions = self.find_sampling_positions()
 
 
 

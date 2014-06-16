@@ -3,8 +3,8 @@ __author__ = 'sami'
 import os
 import numpy
 
-from libtiff import TIFF3D
-
+from libtiff import TIFF
+from matplotlib import pyplot as plt
 
 class Image(object):
     """
@@ -17,7 +17,7 @@ class Image(object):
         assert os.path.isfile(path)
         assert path.endswith(('.tif', '.tiff'))
 
-        image = TIFF3D.open(path)
+        image = TIFF.open(path)
 
         xresolution = float(image.GetField('XRESOLUTION'))
         yresolution = float(image.GetField('YRESOLUTION'))
@@ -41,11 +41,25 @@ class Image(object):
     def __getitem__(self, *args):
         return self.images[args]
 
+    def __mul__(self, other):
+        if isinstance(other, Image):
+            return Image(self.images * other.images, self.spacing)
+        elif isinstance(other, (long, int, float, numpy.ndarray)):
+            return Image(self.images * other, self.spacing)
+        else:
+            return None
+
     def get_spacing(self):
         return self.spacing
 
     def get_dimensions(self):
         return list(self.images.shape)
+
+    def show(self):
+        plt.imshow(self.images)
+        plt.show()
+
+
 
 
 
