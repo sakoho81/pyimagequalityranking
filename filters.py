@@ -3,6 +3,7 @@ from scipy import ndimage
 
 from image import Image
 
+
 class Filter(object):
     """
     A base class for a filter utilizing Image class object
@@ -16,9 +17,6 @@ class Filter(object):
         self.spacing = self.data.get_spacing()
         self.dimensions = self.data.get_dimensions()
         self.physical = physical
-
-
-
 
     def set_physical_coordinates(self):
         self.physical = True
@@ -40,7 +38,6 @@ class LocalImageQuality(Filter):
 
         self.data_temp = None
         self.kernel_size = []
-        self.number_of_samples = 20
 
     def set_smoothing_kernel_size(self, size):
 
@@ -64,10 +61,6 @@ class LocalImageQuality(Filter):
             assert self.kernel_size < self.dimensions, \
                 "Kernel can not be larger than image"
 
-    def set_number_of_samples(self, samples):
-        assert isinstance(samples, int)
-        self.number_of_samples = samples
-
     def run_mean_smoothing(self, return_result=False):
 
         assert len(self.kernel_size) == len(self.dimensions)
@@ -77,34 +70,48 @@ class LocalImageQuality(Filter):
             return Image(self.data_temp, self.spacing)
 
     def run_gaussian_smoothing(self, return_result=False):
-        self.data_temp = ndimage.gaussian_filter(self.data[:], self.kernel_size)
+        self.data_temp = ndimage.gaussian_filter(self.data[:], size=self.kernel_size)
 
         if return_result:
             return self.data_temp
 
-    def _calculate_entropy(self):
-        return None
+    def calculate_entropy(self):
+        # Calculate histogram
+        histogram = ndimage.histogram(
+            self.data_temp,
+            self.data_temp.min(),
+            self.data_temp.max(), 100)[1:]
+        # Exclude zeros
+        histogram = histogram[histogram > 0]
+        # Normalize histogram bins to sum to one
+        histogram = histogram.astype(float)/histogram.sum()
+
+        return -numpy.sum(histogram*numpy.log2(histogram))
 
     def find_sampling_positions(self):
         peaks = numpy.percentile(self.data_temp, 85)
         return numpy.where(self.data_temp >= peaks, 1, 0)
 
-    def calculate_image_quality(self, kernel=None, samples=None):
-        """
-
-        """
-        if samples is not None:
-            self.set_number_of_samples(samples)
-
+    def calculate_image_quality(self, kernel=None):
         if kernel is not None:
             self.set_smoothing_kernel_size(kernel)
 
         assert len(self.kernel_size) != 0
 
         if self.data_temp is None:
-            self.run_gaussian_smoothing()
+            self.run_mean_smoothing()
 
         positions = self.find_sampling_positions()
+        self.data_temp = self.data[:]*positions
+
+        Image(self.data_temp, self.spacing).show()
+
+        return self.calculate_entropy()
+
+
+
+
+
 
 
 
