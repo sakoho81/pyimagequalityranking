@@ -31,7 +31,7 @@ def main():
     elif '-d' in mode:
         assert os.path.isdir(path), path
 
-        output_file = open(os.path.join(path, "image_quality_results.csv", 'wt'))
+        output_file = open(os.path.join(path, "image_quality_results.csv"), 'wt')
         output_writer = csv.writer(output_file, quoting=csv.QUOTE_NONNUMERIC)
         output_writer.writerow(("Filename", "Entropy"))
 

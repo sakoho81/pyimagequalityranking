@@ -62,6 +62,9 @@ class LocalImageQuality(Filter):
                 "Kernel can not be larger than image"
 
     def run_mean_smoothing(self, return_result=False):
+        """
+        Mean smoothing is used to create a mask for the entropy calculation
+        """
 
         assert len(self.kernel_size) == len(self.dimensions)
         self.data_temp = ndimage.uniform_filter(self.data[:], size=self.kernel_size)
@@ -69,23 +72,16 @@ class LocalImageQuality(Filter):
         if return_result:
             return Image(self.data_temp, self.spacing)
 
-    def run_gaussian_smoothing(self, return_result=False):
-        self.data_temp = ndimage.gaussian_filter(self.data[:], size=self.kernel_size)
-
-        if return_result:
-            return self.data_temp
-
     def calculate_entropy(self):
         # Calculate histogram
         histogram = ndimage.histogram(
             self.data_temp,
             self.data_temp.min(),
-            self.data_temp.max(), 100)[1:]
+            self.data_temp.max(), 50)
         # Exclude zeros
-        histogram = histogram[histogram > 0]
+        histogram = histogram[numpy.nonzero(histogram)]
         # Normalize histogram bins to sum to one
         histogram = histogram.astype(float)/histogram.sum()
-
         return -numpy.sum(histogram*numpy.log2(histogram))
 
     def find_sampling_positions(self):
@@ -102,9 +98,9 @@ class LocalImageQuality(Filter):
             self.run_mean_smoothing()
 
         positions = self.find_sampling_positions()
-        self.data_temp = self.data[:]*positions
+        self.data_temp = self.data[:][numpy.nonzero(positions)]
 
-        Image(self.data_temp, self.spacing).show()
+        Image(self.data[:]*positions, self.spacing).show()
 
         return self.calculate_entropy()
 
