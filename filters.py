@@ -2,7 +2,7 @@ import numpy
 from scipy import ndimage, fftpack
 from matplotlib import pyplot as plt
 
-from image import Image
+from image import MyImage as Image
 import External.radial_profile as radprof
 
 
@@ -121,7 +121,7 @@ class ImageResolution(Filter):
         self.data = image
 
     def calculate_power_spectrum(self, show=False):
-        self.power = numpy.abs(fftpack.fftshift(fftpack.fft2(self.data)))**2
+        self.power = numpy.abs(fftpack.fftshift(fftpack.fft2(self.data[:])))**2
         if show:
             Image(numpy.log10(self.power), self.spacing).show()
 
@@ -139,7 +139,7 @@ class ImageResolution(Filter):
         self.average = [average, f_k]
 
         if show:
-            plt.plot(f_k, self.average)
+            plt.plot(numpy.log10(self.average[0]))
             plt.ylabel("Average power")
             plt.xlabel("Frequency")
             plt.show()

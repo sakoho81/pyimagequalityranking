@@ -55,14 +55,14 @@ def azimuthalAverage(
 
     # the 'bins' as initially defined are lower/upper bounds for each bin
     # so that values will be in [lower,upper)
-    nbins = (np.round(r.max() / binsize)+1)
+    nbins = int((np.round(r.max() / binsize)+1))
     maxbin = nbins * binsize
-    bins = np.linspace(0,maxbin,nbins+1)
+    bins = np.linspace(0, maxbin, nbins+1)
     # but we're probably more interested in the bin centers than their left or right sides...
     bin_centers = (bins[1:]+bins[:-1])/2.0
 
     # Find out which radial bin each point in the map belongs to
-    whichbin = np.digitize(r.flat,bins)
+    whichbin = np.digitize(r.flat, bins)
 
     # how many per bin (i.e., histogram)?
     # there are never any in bin 0, because the lowest index returned by digitize is 1
@@ -70,13 +70,16 @@ def azimuthalAverage(
 
     # recall that bins are from 1 to nbins (which is expressed in array terms by arange(nbins)+1 or xrange(1,nbins+1) )
     # radial_prof.shape = bin_centers.shape
+
+    print nbins
+
     if stddev:
         radial_prof = np.array([image.flat[mask*(whichbin==b)].std() for b in xrange(1,nbins+1)])
     else:
-        radial_prof = np.array([(image*weights).flat[mask*(whichbin==b)].sum() / weights.flat[mask*(whichbin==b)].sum() for b in xrange(1,nbins+1)])
+        radial_prof = np.array([((image*weights).flat[mask*(whichbin == b)].sum()) / (weights.flat[mask*(whichbin==b)].sum()) for b in xrange(1, nbins+1)])
 
-    if normalize:
-        radial_prof /= radial_prof.sum()
+    # if normalize:
+        # radial_prof /= radial_prof.sum()
 
     #import pdb; pdb.set_trace()
 
@@ -200,7 +203,7 @@ def radialAverage(image, center=None, stddev=False, returnAz=False, return_naz=F
     if stddev:
         azimuthal_prof = np.array([image.flat[mask*(whichbin==b)].std() for b in xrange(1,nbins+1)])
     else:
-        azimuthal_prof = np.array([(image*weights).flat[mask*(whichbin==b)].sum() / weights.flat[mask*(whichbin==b)].sum() for b in xrange(1,nbins+1)])
+        azimuthal_prof = np.array([((image*weights).flat[mask*(whichbin==b)].sum()) / (weights.flat[mask*(whichbin==b)].sum()) for b in xrange(1,nbins+1)])
 
     #import pdb; pdb.set_trace()
 
