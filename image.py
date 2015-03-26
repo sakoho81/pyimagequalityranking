@@ -9,6 +9,7 @@ from matplotlib import pyplot as plt
 from math import log10
 
 
+
 class MyImage(object):
     """
     A very simple class to contain image data 2D/3D

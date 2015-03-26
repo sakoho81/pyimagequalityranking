@@ -1,6 +1,7 @@
 import numpy
 from scipy import ndimage, fftpack
 from matplotlib import pyplot as plt
+from math import floor
 
 from image import MyImage as Image
 import External.radial_profile as radprof
@@ -114,6 +115,7 @@ class ImageResolution(Filter):
         Filter.__init__(self, image, physical)
 
         self.average = None
+        self.sum = None
         self.power = None
         self.kernel_size = []
 
@@ -132,9 +134,9 @@ class ImageResolution(Filter):
             normalize=True
         )
         dx = self.data.get_spacing()[0]
-        dim = self.data.get_dimensions()[0]
 
-        f_k = 2*bin_centers/(dx*dim)
+
+        f_k = bin_centers*(2.0/dx*bin_centers.size)
 
         self.average = [average, f_k]
 
@@ -143,6 +145,36 @@ class ImageResolution(Filter):
             plt.ylabel("Average power")
             plt.xlabel("Frequency")
             plt.show()
+
+    def calculate_summed_power(self, show=False):
+        """
+        I don't know how "kosher" this method is but here I pack the power spectrum into
+        N/2+1 long 1D array, by taking advantage of the fourier spectrum symmetries.
+        The highest frequency in the centered power spectrum can be found at all the four
+        extremities of the image.
+        """
+
+        sum = numpy.zeros(self.power.shape[0])
+        for i in range(len(self.power)):
+            sum += numpy.sum(self.power, axis=i)
+        zero = floor(float(sum.size)/2)
+        sum[zero:] = sum[zero:]+sum[:zero-1]
+        sum = sum[zero:]
+
+        dx = self.data.get_spacing()[0]
+
+        f_k = numpy.arange(self.sum.size)*(2.0/dx*self.sum.size)
+
+        self.sum = [sum, f_k]
+
+        if show:
+            plt.plot(self.sum)
+            plt.ylabel("Total power")
+            plt.yscale('log')
+            plt.xlabel('Frequency')
+            plt.show()
+
+
 
     def calculate_image_resolution(self, show_intermediate=False, show=False, measure="quartal"):
         """
@@ -158,6 +190,28 @@ class ImageResolution(Filter):
             print pos
         else:
             print "Not implemented!!"
+
+    def show_all(self):
+        plots = []
+        if self.power is not None:
+            plots.append("Power")
+        if self.average is not None:
+            plots.append("Average")
+        if self.sum is not None:
+            plots.append("Sum")
+
+        title= ('Power', 'Average', "Sum")
+        vals = (self.power, self.average, self.sum)
+        color = ('c', 'm', 'g', 'b')
+
+        for i in range(len(title)):
+            if i == len(plots):
+                i -= 1
+            plt.subplot(1, len(plots), i)
+            if title[i] in plots:
+                plt.plot(vals, linewidth=2, color=color[i])
+                plt.title(title[i])
+        plt.show()
 
 
 

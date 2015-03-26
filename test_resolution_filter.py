@@ -18,8 +18,8 @@ def main():
     print image.get_spacing()
 
     task = ImageResolution(image)
-    task.calculate_power_spectrum(show=True)
-    task.calculate_azimuthal_average(show=True)
-
+    task.calculate_power_spectrum(show=False)
+    #task.calculate_azimuthal_average(show=False)
+    task.calculate_summed_power(show=False)
 if __name__ == "__main__":
     main()
