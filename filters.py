@@ -11,7 +11,7 @@ class Filter(object):
     """
     A base class for a filter utilizing Image class object
     """
-    def __init__(self, image, physical=False):
+    def __init__(self, image, physical=False, verbal=False):
 
         assert isinstance(image, Image)
 
@@ -20,6 +20,7 @@ class Filter(object):
         self.spacing = self.data.get_spacing()
         self.dimensions = self.data.get_dimensions()
         self.physical = physical
+        self.verbal = verbal
 
     def set_physical_coordinates(self):
         self.physical = True
@@ -35,9 +36,9 @@ class LocalImageQuality(Filter):
     of details
     """
 
-    def __init__(self, image, physical=False):
+    def __init__(self, image, physical=False, verbal=False):
 
-        Filter.__init__(self, image, physical)
+        Filter.__init__(self, image, physical, verbal)
 
         self.data_temp = None
         self.kernel_size = []
@@ -110,9 +111,9 @@ class LocalImageQuality(Filter):
 
 
 class ImageResolution(Filter):
-    def __init__(self, image, physical=False):
+    def __init__(self, image, physical=False, verbal=False):
 
-        Filter.__init__(self, image, physical)
+        Filter.__init__(self, image, physical=physical, verbal=verbal)
 
         self.average = None
         self.sum = None
@@ -127,18 +128,18 @@ class ImageResolution(Filter):
         if show:
             Image(numpy.log10(self.power), self.spacing).show()
 
-    def calculate_azimuthal_average(self, show=False):
+    def calculate_azimuthal_average(self, bin_size=2, show=False):
         bin_centers, average = radprof.azimuthalAverage(
             self.power,
+            binsize=bin_size,
             returnradii=True,
             normalize=True
         )
         dx = self.data.get_spacing()[0]
 
+        f_k = bin_centers*(2.0/(dx*bin_centers.size*bin_size))
 
-        f_k = bin_centers*(2.0/dx*bin_centers.size)
-
-        self.average = [average, f_k]
+        self.average = [f_k, average]
 
         if show:
             plt.plot(numpy.log10(self.average[0]))
@@ -155,17 +156,22 @@ class ImageResolution(Filter):
         """
 
         sum = numpy.zeros(self.power.shape[0])
-        for i in range(len(self.power)):
+        for i in range(len(self.power.shape)):
             sum += numpy.sum(self.power, axis=i)
         zero = floor(float(sum.size)/2)
-        sum[zero:] = sum[zero:]+sum[:zero-1]
+        sum[zero+1:] = sum[zero+1:]+sum[:zero-1][::-1]
         sum = sum[zero:]
 
         dx = self.data.get_spacing()[0]
 
-        f_k = numpy.arange(self.sum.size)*(2.0/dx*self.sum.size)
+        f_k = numpy.arange(sum.size)*(2.0/(dx*sum.size))
 
-        self.sum = [sum, f_k]
+        hf_sum = sum[numpy.where(f_k > .9*f_k.max())]
+        print "The mean is: %f" % numpy.mean(hf_sum)
+        print "The std is: %f" % numpy.std(hf_sum)
+
+
+        self.sum = [f_k, sum]
 
         if show:
             plt.plot(self.sum)
@@ -192,25 +198,16 @@ class ImageResolution(Filter):
             print "Not implemented!!"
 
     def show_all(self):
-        plots = []
+        fig, subplots = plt.subplots(1, 3)
         if self.power is not None:
-            plots.append("Power")
+            subplots[0].imshow(numpy.log10(self.power))
         if self.average is not None:
-            plots.append("Average")
+            subplots[1].plot(self.average[0], self.average[1], linewidth=1)
+            subplots[1].set_yscale('log')
         if self.sum is not None:
-            plots.append("Sum")
+            subplots[2].plot(self.sum[0], self.sum[1], linewidth=1)
+            subplots[2].set_yscale('log')
 
-        title= ('Power', 'Average', "Sum")
-        vals = (self.power, self.average, self.sum)
-        color = ('c', 'm', 'g', 'b')
-
-        for i in range(len(title)):
-            if i == len(plots):
-                i -= 1
-            plt.subplot(1, len(plots), i)
-            if title[i] in plots:
-                plt.plot(vals, linewidth=2, color=color[i])
-                plt.title(title[i])
         plt.show()
 
 

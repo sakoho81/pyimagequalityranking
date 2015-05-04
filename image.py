@@ -8,6 +8,7 @@ from PIL.TiffImagePlugin import X_RESOLUTION, Y_RESOLUTION
 from matplotlib import pyplot as plt
 from math import log10
 
+import utils
 
 
 class MyImage(object):
@@ -26,7 +27,7 @@ class MyImage(object):
         xresolution = image.tag.tags[X_RESOLUTION][0][0]
         yresolution = image.tag.tags[Y_RESOLUTION][0][0]
 
-        data = numpy.array(image)
+        data = utils.rescale_to_min_max(numpy.array(image), 0, 255)
 
         if data.shape[0] == 1:
             data = data[0]

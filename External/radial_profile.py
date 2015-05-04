@@ -40,6 +40,8 @@ def azimuthalAverage(
     if center is None:
         center = np.array([(x.max()-x.min())/2.0, (y.max()-y.min())/2.0])
 
+    # Convert FFT image into polar form. Exclude frequencies higher than
+    # the sampling frequency
     r = np.hypot(x - center[0], y - center[1])
 
     if weights is None:
@@ -70,13 +72,13 @@ def azimuthalAverage(
 
     # recall that bins are from 1 to nbins (which is expressed in array terms by arange(nbins)+1 or xrange(1,nbins+1) )
     # radial_prof.shape = bin_centers.shape
-
-    print nbins
-
+    sampling_freq = (x.max()-x.min())/2.0
+    nbins_true = int(sampling_freq/binsize)
+    bin_centers = bin_centers[0:nbins_true]
     if stddev:
         radial_prof = np.array([image.flat[mask*(whichbin==b)].std() for b in xrange(1,nbins+1)])
     else:
-        radial_prof = np.array([((image*weights).flat[mask*(whichbin == b)].sum()) / (weights.flat[mask*(whichbin==b)].sum()) for b in xrange(1, nbins+1)])
+        radial_prof = np.array([((image*weights).flat[mask*(whichbin == b)].sum()) / (weights.flat[mask*(whichbin==b)].sum()) for b in xrange(1, nbins_true+1)])
 
     # if normalize:
         # radial_prof /= radial_prof.sum()
