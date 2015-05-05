@@ -5,6 +5,7 @@ from math import floor
 
 from image import MyImage as Image
 import External.radial_profile as radprof
+import utils
 
 
 class Filter(object):
@@ -115,8 +116,7 @@ class ImageResolution(Filter):
 
         Filter.__init__(self, image, physical=physical, verbal=verbal)
 
-        self.average = None
-        self.sum = None
+        self.simple_power = None
         self.power = None
         self.kernel_size = []
 
@@ -137,12 +137,13 @@ class ImageResolution(Filter):
         )
         dx = self.data.get_spacing()[0]
 
-        f_k = bin_centers*(2.0/(dx*bin_centers.size*bin_size))
+        size = int(float(self.power.shape[0])/2)
+        f_k = (bin_centers/size) * (1.0/(2*dx))
 
-        self.average = [f_k, average]
+        self.simple_power = [f_k, average]
 
         if show:
-            plt.plot(numpy.log10(self.average[0]))
+            plt.plot(numpy.log10(self.simple_power[0]))
             plt.ylabel("Average power")
             plt.xlabel("Frequency")
             plt.show()
@@ -164,50 +165,57 @@ class ImageResolution(Filter):
 
         dx = self.data.get_spacing()[0]
 
-        f_k = numpy.arange(sum.size)*(2.0/(dx*sum.size))
+        f_k = numpy.linspace(0, 1, sum.size)*(1.0/(2*dx))
 
-        hf_sum = sum[numpy.where(f_k > .9*f_k.max())]
-        print "The mean is: %f" % numpy.mean(hf_sum)
-        print "The std is: %f" % numpy.std(hf_sum)
-
-
-        self.sum = [f_k, sum]
+        self.simple_power = [f_k, sum]
 
         if show:
-            plt.plot(self.sum)
+            plt.plot(self.simple_power)
             plt.ylabel("Total power")
             plt.yscale('log')
             plt.xlabel('Frequency')
             plt.show()
 
-
-
-    def calculate_image_resolution(self, show_intermediate=False, show=False, measure="quartal"):
+    def calculate_image_resolution(self, show_intermediate=False, show=False, power="additive"):
         """
         The calculated resolution in the histogram depends on the number of histogram bins. I have to convert
         the bins into physical distances.
         """
         assert self.data is not None, "Please set an image to process"
         self.calculate_power_spectrum(show=show_intermediate)
-        self.calculate_azimuthal_average(show=show_intermediate)
 
-        if measure is "quartal":
-            pos = numpy.percentile(self.average[0], 75)
-            print pos
+        if power is "radial":
+            self.calculate_azimuthal_average(show=show_intermediate)
+        elif power is "additive":
+            self.calculate_summed_power()
         else:
-            print "Not implemented!!"
+            raise NotImplementedError
+
+        hf_sum = self.simple_power[1][self.simple_power[0] > .4*self.simple_power[0].max()]
+        f_th = self.simple_power[0][self.simple_power[0] > .4*self.simple_power[0].max()][utils.analyze_accumulation(hf_sum, .8)]
+
+        mean = numpy.mean(hf_sum)
+        std = numpy.std(hf_sum)
+        entropy = utils.calculate_entropy(hf_sum)
+        nm_th = 1.0e9/f_th
+        pw_at_max_f = self.simple_power[1][-1]
+
+        if show:
+            print "The mean is: %e" % mean
+            print "The std is: %e" % std
+            print "The entropy of frequencies is %e" % entropy
+            print "The threshold distance is %f nanometers" % nm_th
+            print "Power at highest frequency %e" % pw_at_max_f
+
+        return mean, std, entropy, nm_th, pw_at_max_f
 
     def show_all(self):
-        fig, subplots = plt.subplots(1, 3)
+        fig, subplots = plt.subplots(1, 2)
         if self.power is not None:
             subplots[0].imshow(numpy.log10(self.power))
-        if self.average is not None:
-            subplots[1].plot(self.average[0], self.average[1], linewidth=1)
+        if self.simple_power is not None:
+            subplots[1].plot(self.simple_power[0], self.simple_power[1], linewidth=1)
             subplots[1].set_yscale('log')
-        if self.sum is not None:
-            subplots[2].plot(self.sum[0], self.sum[1], linewidth=1)
-            subplots[2].set_yscale('log')
-
         plt.show()
 
 

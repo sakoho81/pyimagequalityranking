@@ -3,9 +3,8 @@ import os
 
 from image import MyImage as Image
 from filters import ImageResolution
-import utils
 
-path_prefix = "/Users/sami/Temp/data"
+path_prefix = "/home/sami/Pictures/Quality"
 
 def main():
     if len(sys.argv) < 2:
@@ -20,7 +19,7 @@ def main():
     task = ImageResolution(image)
     task.calculate_power_spectrum(show=False)
     task.calculate_azimuthal_average(show=False)
-    task.calculate_summed_power(show=False)
+    #task.calculate_summed_power(show=False)
     task.show_all()
 
 if __name__ == "__main__":
