@@ -1,5 +1,7 @@
 from scipy import ndimage
 import numpy
+from matplotlib import pyplot as plt
+import os
 
 def rescale_to_min_max(data, data_min, data_max):
     """
@@ -38,3 +40,35 @@ def calculate_entropy(data):
         # Normalize histogram bins to sum to one
         histogram = histogram.astype(float)/histogram.sum()
         return -numpy.sum(histogram*numpy.log2(histogram))
+
+def show_pics_from_disk(filenames, title="Image collage"):
+    if len(filenames) > 1:
+        if len(filenames) > 4:
+            fig, subplots = plt.subplots(3, 3)
+        elif len(filenames) > 9:
+            fig, subplots = plt.subplots(4, 4)
+        else:
+            fig, subplots = plt.subplots(2, 2)
+
+        #fig.title(title)
+        i = 0
+        j = 0
+        k = 0
+        while k < len(filenames):
+            j = 0
+            while j < subplots.shape[1] and k < len(filenames):
+                print filenames[i+j]
+                subplots[i, j].imshow(plt.imread(filenames[k]), cmap=plt.cm.hot)
+                subplots[i, j].set_title(k)
+                subplots[i, j].axis("off")
+                k += 1
+                j += 1
+            i += 1
+        plt.subplots_adjust(wspace=-0.5, hspace=0.2)
+        plt.suptitle(title, size=16)
+        plt.show()
+
+    else:
+        plt.imshow(plt.imread(filenames))
+        plt.axis("off")
+        plt.show()

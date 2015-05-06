@@ -1,7 +1,7 @@
 import sys
 import os
 
-from image import MyImage as Image
+from myimage import MyImage as Image
 from filters import ImageResolution
 
 path_prefix = "/home/sami/Pictures/Quality"

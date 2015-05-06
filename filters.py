@@ -1,9 +1,9 @@
 import numpy
-from scipy import ndimage, fftpack
+from scipy import ndimage, fftpack, stats
 from matplotlib import pyplot as plt
 from math import floor
 
-from image import MyImage as Image
+from myimage import MyImage as Image
 import External.radial_profile as radprof
 import utils
 
@@ -176,7 +176,7 @@ class ImageResolution(Filter):
             plt.xlabel('Frequency')
             plt.show()
 
-    def calculate_image_resolution(self, show_intermediate=False, show=False, power="additive"):
+    def analyze_power_spectrum(self, show_intermediate=False, show=False, power="additive"):
         """
         The calculated resolution in the histogram depends on the number of histogram bins. I have to convert
         the bins into physical distances.
@@ -192,13 +192,14 @@ class ImageResolution(Filter):
             raise NotImplementedError
 
         hf_sum = self.simple_power[1][self.simple_power[0] > .4*self.simple_power[0].max()]
-        f_th = self.simple_power[0][self.simple_power[0] > .4*self.simple_power[0].max()][utils.analyze_accumulation(hf_sum, .8)]
+        f_th = self.simple_power[0][self.simple_power[0] > .4*self.simple_power[0].max()][-utils.analyze_accumulation(hf_sum, .8)]
 
         mean = numpy.mean(hf_sum)
         std = numpy.std(hf_sum)
         entropy = utils.calculate_entropy(hf_sum)
         nm_th = 1.0e9/f_th
         pw_at_max_f = self.simple_power[1][-1]
+        skew = stats.skew(hf_sum)
 
         if show:
             print "The mean is: %e" % mean
@@ -207,7 +208,7 @@ class ImageResolution(Filter):
             print "The threshold distance is %f nanometers" % nm_th
             print "Power at highest frequency %e" % pw_at_max_f
 
-        return mean, std, entropy, nm_th, pw_at_max_f
+        return [mean, std, entropy, nm_th, pw_at_max_f, skew]
 
     def show_all(self):
         fig, subplots = plt.subplots(1, 2)
