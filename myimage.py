@@ -1,5 +1,3 @@
-__author__ = 'sami'
-
 import os
 import numpy
 
@@ -34,6 +32,16 @@ class MyImage(object):
 
         return cls(images=data, spacing=[1.0/xresolution, 1.0/yresolution])
 
+    @classmethod
+    def get_generic_image(cls, path):
+        assert os.path.isfile(path)
+
+        image = numpy.array(Image.open(path))
+        image = utils.rescale_to_min_max(image, 0, 255)
+
+        return cls(images=image, spacing=[1, 1])
+
+
     def __init__(self, images=None, spacing=None):
 
         self.images = numpy.array(images)
@@ -46,8 +54,6 @@ class MyImage(object):
             self.spacing_unit = 'nm'
         else:
             self.spacing_unit = 'not_def'
-
-        assert len(spacing) == len(images.shape), (spacing, images.shape)
 
         self.data_type = self.images.dtype
 
@@ -69,8 +75,17 @@ class MyImage(object):
         return list(self.images.shape)
 
     def show(self):
-        plt.imshow(self.images)
+        plt.imshow(self.images, cmap=plt.cm.binary)
         plt.show()
+
+    def get_channel(self, channel):
+        return MyImage(self.images[:, :, channel], self.spacing)
+
+    def is_rgb(self):
+        if len(self.images.shape) == 3:
+            return True
+        else:
+            return False
 
 
 

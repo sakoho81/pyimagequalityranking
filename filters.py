@@ -2,19 +2,34 @@ import numpy
 from scipy import ndimage, fftpack, stats
 from matplotlib import pyplot as plt
 from math import floor
+import argparse
 
 from myimage import MyImage as Image
 import External.radial_profile as radprof
 import utils
 
+def get_filter_options(parser):
+    assert isinstance(parser, argparse.ArgumentParser)
+    group = parser.add_argument_group("Filters", "Options for the quality filters")
+    group.add_argument(
+        "--power-averaging",
+        dest="power_averaging",
+        choices=["radial", "additive"],
+        default="additive"
+    )
+    return parser
 
 class Filter(object):
     """
     A base class for a filter utilizing Image class object
     """
-    def __init__(self, image, physical=False, verbal=False):
+    def __init__(self, image, options, physical=False, verbal=False):
 
         assert isinstance(image, Image)
+        self.options = options
+
+        if image.is_rgb():
+            self.data = image.get_channel(self.options.rgb_channel)
 
         self.data = image
 
@@ -37,9 +52,9 @@ class LocalImageQuality(Filter):
     of details
     """
 
-    def __init__(self, image, physical=False, verbal=False):
+    def __init__(self, image, options, physical=False, verbal=False):
 
-        Filter.__init__(self, image, physical, verbal)
+        Filter.__init__(self, image, options, physical, verbal)
 
         self.data_temp = None
         self.kernel_size = []
@@ -112,10 +127,12 @@ class LocalImageQuality(Filter):
 
 
 class ImageResolution(Filter):
-    def __init__(self, image, physical=False, verbal=False):
+    def __init__(self, image, options, physical=False, verbal=False):
 
-        Filter.__init__(self, image, physical=physical, verbal=verbal)
+        Filter.__init__(self, image, options, physical=physical, verbal=verbal)
 
+        if self.options.power_averaging == "additive":
+            self.crop()
         self.simple_power = None
         self.power = None
         self.kernel_size = []
@@ -184,9 +201,9 @@ class ImageResolution(Filter):
         assert self.data is not None, "Please set an image to process"
         self.calculate_power_spectrum(show=show_intermediate)
 
-        if power is "radial":
+        if self.options.power_averaging == "radial":
             self.calculate_azimuthal_average(show=show_intermediate)
-        elif power is "additive":
+        elif self.options.power_averaging == "additive":
             self.calculate_summed_power()
         else:
             raise NotImplementedError
@@ -215,10 +232,21 @@ class ImageResolution(Filter):
         if self.power is not None:
             subplots[0].imshow(numpy.log10(self.power))
         if self.simple_power is not None:
+            index = int(len(self.simple_power[0])*.4)
+            #subplots[1].plot(self.simple_power[0][index:], self.simple_power[1][index:], linewidth=1)
             subplots[1].plot(self.simple_power[0], self.simple_power[1], linewidth=1)
             subplots[1].set_yscale('log')
         plt.show()
 
+    def crop(self):
+        dims = self.data[:].shape
+
+        if dims[0] > dims[1]:
+            diff = int(0.5*(dims[0]-dims[1]))
+            self.data = Image(self.data[:][diff: -diff, :], self.data.get_spacing())
+        elif dims[1] > dims[0]:
+            diff = int(0.5*(dims[1]-dims[0]))
+            self.data = Image(self.data[:][:, diff: -diff], self.data.get_spacing())
 
 
 

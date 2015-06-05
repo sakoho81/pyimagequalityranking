@@ -14,12 +14,20 @@ def rescale_to_min_max(data, data_min, data_max):
     :param data_max:    Maximum pixel value
     :return:            Return the rescaled array
     """
-    # Return array with max value in the original image scaled to correct
-    # range
-    if abs(data.max()) > abs(data.min()) or data_min == 0:
-        return data_max / data.max()*data
+    # Check if image is an RGB image
+    if len(data.shape) == 3:
+        for i in range(data.shape[2]):
+            if abs(data[:, :, i].max()) > abs(data[:, :, i].min()) or data_min == 0:
+                data[:, :, i] = data_max / data.max()*data[:, :, i]
+            else:
+                data[:, :, i] = data_min / data.min()*data[:, :, i]
+        return data
+
     else:
-        return data_min / data.min()*data
+        if abs(data.max()) > abs(data.min()) or data_min == 0:
+            return data_max / data.max()*data
+        else:
+            return data_min / data.min()*data
 
 def analyze_accumulation(x, fraction):
     assert 0.0 < fraction <= 1.0
