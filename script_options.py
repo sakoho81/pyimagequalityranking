@@ -20,7 +20,7 @@ def get_quality_script_options(arguments):
     )
     parser.add_argument(
         "--mode",
-        choices=["file", "directory", "analyze", "complete"],
+        choices=["file", "directory", "analyze", "complete", "plot"],
         default="complete"
     )
 
@@ -50,9 +50,15 @@ def get_quality_script_options(arguments):
     parser.add_argument(
         "--result",
         default="average",
-        choices=["average", "fskew", "ientropy", "fentropy"],
+        choices=["average", "fskew", "ientropy", "fentropy", "fstd"],
         help="Tell how you want the results to be calculated."
     )
+    parser.add_argument(
+        "--npics",
+        type=int,
+        default=9
+    )
+
     from filters import get_filter_options
     parser = get_filter_options(parser)
     return parser.parse_args(arguments)

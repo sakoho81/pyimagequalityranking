@@ -17,7 +17,18 @@ def get_filter_options(parser):
         choices=["radial", "additive"],
         default="additive"
     )
+    group.add_argument(
+        "--use-mask",
+        dest="use_mask",
+        action="store_true"
+    )
+    group.add_argument(
+        "--invert-mask",
+        dest="invert_mask",
+        action="store_true"
+    )
     return parser
+
 
 class Filter(object):
     """
@@ -97,7 +108,8 @@ class LocalImageQuality(Filter):
         histogram = ndimage.histogram(
             self.data_temp,
             self.data_temp.min(),
-            self.data_temp.max(), 50)
+            self.data_temp.max(), 50
+        )
         # Exclude zeros
         histogram = histogram[numpy.nonzero(histogram)]
         # Normalize histogram bins to sum to one
@@ -105,23 +117,30 @@ class LocalImageQuality(Filter):
         return -numpy.sum(histogram*numpy.log2(histogram))
 
     def find_sampling_positions(self):
-        peaks = numpy.percentile(self.data_temp, 85)
-        return numpy.where(self.data_temp >= peaks, 1, 0)
+        peaks = numpy.percentile(self.data_temp, 100)
+        mask = numpy.where(self.data_temp >= peaks, 1, 0)
+        if self.options.invert_mask:
+            return numpy.invert(mask.astype(bool))
+        else:
+            return mask
 
     def calculate_image_quality(self, kernel=None, show=False):
-        if kernel is not None:
-            self.set_smoothing_kernel_size(kernel)
+        if self.options.use_mask:
+            if kernel is not None:
+                self.set_smoothing_kernel_size(kernel)
 
-        assert len(self.kernel_size) != 0
+            assert len(self.kernel_size) != 0
 
-        if self.data_temp is None:
-            self.run_mean_smoothing()
+            if self.data_temp is None:
+                self.run_mean_smoothing()
 
-        positions = self.find_sampling_positions()
-        self.data_temp = self.data[:][numpy.nonzero(positions)]
+            positions = self.find_sampling_positions()
+            self.data_temp = self.data[:][numpy.nonzero(positions)]
 
-        if show:
-            Image(self.data[:]*positions, self.spacing).show()
+            if show:
+                Image(self.data[:]*positions, self.spacing).show()
+        else:
+            self.data_temp = self.data[:]
 
         return self.calculate_entropy()
 

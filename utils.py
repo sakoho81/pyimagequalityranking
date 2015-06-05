@@ -51,10 +51,14 @@ def calculate_entropy(data):
 
 def show_pics_from_disk(filenames, title="Image collage"):
     if len(filenames) > 1:
-        if len(filenames) > 4:
+        if 4 < len(filenames) <= 9:
             fig, subplots = plt.subplots(3, 3)
-        elif len(filenames) > 9:
+        elif 9 < len(filenames) <= 16:
             fig, subplots = plt.subplots(4, 4)
+        elif 16 < len(filenames) <= 25:
+            fig, subplots = plt.subplots(5, 5)
+        elif 25 < len(filenames) <= 36:
+            fig, subplots = plt.subplots(6, 6)
         else:
             fig, subplots = plt.subplots(2, 2)
 

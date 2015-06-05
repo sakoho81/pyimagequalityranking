@@ -45,7 +45,7 @@ def main():
         print "The threshold distance is %f nanometers" % finfo[3]
         print "Power at highest frequency %e" % finfo[4]
 
-    elif options.mode in ["directory", "complete"]:
+    elif options.mode == "directory":
         # d - mode requires a directory
         assert os.path.isdir(path), path
 
@@ -93,14 +93,15 @@ def main():
         output_file.close()
         print "The results were saved to %s" % file_path
 
-    elif options.mode in ["analyze", "complete"]:
+    elif options.mode == "analyze":
         # In "analyze" mode a previously created data file will be opened here.
         # The data file should be located in the working directory, and the
         # file name should be specified with the --file command line argument
         if file_path is None:
             assert options.file is not None, "You have to specify a data file" \
                                              "with the --file option"
-            path = os.path.join(path, options.file)
+            path = os.path.join(options.working_directory, options.file)
+            print path
             file_path = path
             assert os.path.isfile(path), "Not a valid file %s" % path
             assert path.endswith(".csv"), "Unknown suffix %s" % path.split(".")[-1]
@@ -108,25 +109,27 @@ def main():
         data = pandas.read_csv(file_path)
         data["cv"] = data.fSTD/data.fMean
         data["SpatEntNorm"] = data.tEntropy/data.tEntropy.max()
+        data["SpectSTDNorm"] = data.fSTD/data.fSTD.max()
         data["SpectEntNorm"] = data.fEntropy/data.fEntropy.max()
         data["SkewNorm"] = 1 - abs(data.Skew)/abs(data.Skew).max()
 
-        data["Average"] = data[["SpectEntNorm", "SpatEntNorm", "SkewNorm"]].mean(axis=1)
-
-        if options.result is "average":
-            data.sort(column="Result", ascending=False, inplace=True)
-        elif options.result is "fskew":
+        if options.result == "average":
+            data["Average"] = data[["SpectSTDNorm", "SpatEntNorm"]].mean(axis=1)
+            data.sort(column="Average", ascending=False, inplace=True)
+        elif options.result == "fskew":
             data.sort(column="SkewNorm", ascending=False, inplace=True)
-        elif options.result is "fentropy":
+        elif options.result == "fentropy":
             data.sort(column="SpectEntNorm", ascending=False, inplace=True)
-        elif options.result is "ientropy":
+        elif options.result == "ientropy":
             data.sort(column="SpatEntNorm", ascending=False, inplace=True)
+        elif options.result == "fstd":
+            data.sort(column="SpectSTDNorm", ascending=False, inplace=True)
         else:
             print "Unknown results sorting method %s" % options.result
             sys.exit()
 
-        best_pics = data["Filename"].head(9).as_matrix()
-        worst_pics = data["Filename"].tail(9).as_matrix()
+        best_pics = data["Filename"].head(options.npics).as_matrix()
+        worst_pics = data["Filename"].tail(options.npics).as_matrix()
         utils.show_pics_from_disk(best_pics, title="BEST PICS")
         utils.show_pics_from_disk(worst_pics, title="WORST PICS")
 
@@ -141,6 +144,33 @@ def main():
 
         data.to_csv(file_path)
         print "The results were saved to %s" % file_path
+
+    elif options.mode == "plot":
+        path = os.path.join(options.working_directory, options.file)
+        assert os.path.isfile(path), "Not a valid file %s" % path
+        assert path.endswith(".csv"), "Unknown suffix %s" % path.split(".")[-1]
+
+        data = pandas.read_csv(path)
+        if options.result == "average":
+            data["Average"] = data[["SpectSTDNorm", "SpatEntNorm"]].mean(axis=1)
+            data.sort(column="Average", ascending=False, inplace=True)
+        elif options.result == "fskew":
+            data.sort(column="SkewNorm", ascending=False, inplace=True)
+        elif options.result == "fentropy":
+            data.sort(column="SpectEntNorm", ascending=False, inplace=True)
+        elif options.result == "ientropy":
+            data.sort(column="SpatEntNorm", ascending=False, inplace=True)
+        elif options.result == "fstd":
+            data.sort(column="SpectSTDNorm", ascending=False, inplace=True)
+        else:
+            print "Unknown results sorting method %s" % options.result
+            sys.exit()
+
+        best_pics = data["Filename"].head(options.npics).as_matrix()
+        worst_pics = data["Filename"].tail(options.npics).as_matrix()
+        utils.show_pics_from_disk(best_pics, title="BEST PICS")
+        utils.show_pics_from_disk(worst_pics, title="WORST PICS")
+
 
 
 if __name__ == "__main__":
