@@ -20,8 +20,8 @@ def get_quality_script_options(arguments):
     )
     parser.add_argument(
         "--mode",
-        choices=["file", "directory", "analyze", "complete", "plot"],
-        default="complete"
+        choices=["file", "directory", "analyze", "plot"],
+        action="append"
     )
 
     # Image I/O
@@ -50,7 +50,7 @@ def get_quality_script_options(arguments):
     parser.add_argument(
         "--result",
         default="average",
-        choices=["average", "fskew", "ientropy", "fentropy", "fstd"],
+        choices=["average", "fskew", "ientropy", "fentropy", "fstd", "fkurtosis", "fpw", "fmean"],
         help="Tell how you want the results to be calculated."
     )
     parser.add_argument(

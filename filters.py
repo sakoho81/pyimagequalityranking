@@ -18,6 +18,12 @@ def get_filter_options(parser):
         default="additive"
     )
     group.add_argument(
+        "--normalize-power",
+        dest="normalize_power",
+        action="store_true"
+
+    )
+    group.add_argument(
         "--use-mask",
         dest="use_mask",
         action="store_true"
@@ -150,8 +156,11 @@ class ImageResolution(Filter):
 
         Filter.__init__(self, image, options, physical=physical, verbal=verbal)
 
+        # Additive form of power spectrum calculation requires a square shaped
+        # image
         if self.options.power_averaging == "additive":
             self.crop()
+
         self.simple_power = None
         self.power = None
         self.kernel_size = []
@@ -160,11 +169,25 @@ class ImageResolution(Filter):
         self.data = image
 
     def calculate_power_spectrum(self, show=False):
+        """
+        A function that is used to calculate a centered 2D power spectrum.
+        Additionally the power spectrum can be normalized by image dimensions
+        and image intensity mean, if necessary.
+        """
         self.power = numpy.abs(fftpack.fftshift(fftpack.fft2(self.data[:])))**2
+        if self.options.normalize_power:
+            dims = self.data[:].shape[0]*self.data[:].shape[1]
+            mean = numpy.mean(self.data[:])
+            self.power = self.power/(dims*mean)
+
         if show:
             Image(numpy.log10(self.power), self.spacing).show()
 
-    def calculate_azimuthal_average(self, bin_size=2, show=False):
+    def calculate_radial_average(self, bin_size=2, show=False):
+        """
+        Convert a 2D centered power spectrum into 1D by averaging spectral
+        power at different radiuses from the zero frequency center
+        """
         bin_centers, average = radprof.azimuthalAverage(
             self.power,
             binsize=bin_size,
@@ -198,9 +221,7 @@ class ImageResolution(Filter):
         zero = floor(float(sum.size)/2)
         sum[zero+1:] = sum[zero+1:]+sum[:zero-1][::-1]
         sum = sum[zero:]
-
         dx = self.data.get_spacing()[0]
-
         f_k = numpy.linspace(0, 1, sum.size)*(1.0/(2*dx))
 
         self.simple_power = [f_k, sum]
@@ -212,39 +233,40 @@ class ImageResolution(Filter):
             plt.xlabel('Frequency')
             plt.show()
 
-    def analyze_power_spectrum(self, show_intermediate=False, show=False, power="additive"):
+    def analyze_power_spectrum(self, show_intermediate=False, show=False):
         """
-        The calculated resolution in the histogram depends on the number of histogram bins. I have to convert
-        the bins into physical distances.
+        The calculated resolution in the histogram depends on the number of
+        histogram bins. I have to convert the bins into physical distances.
         """
         assert self.data is not None, "Please set an image to process"
         self.calculate_power_spectrum(show=show_intermediate)
 
         if self.options.power_averaging == "radial":
-            self.calculate_azimuthal_average(show=show_intermediate)
+            self.calculate_radial_average(show=show_intermediate)
         elif self.options.power_averaging == "additive":
-            self.calculate_summed_power()
+            self.calculate_summed_power(show=show_intermediate)
         else:
             raise NotImplementedError
 
         hf_sum = self.simple_power[1][self.simple_power[0] > .4*self.simple_power[0].max()]
-        f_th = self.simple_power[0][self.simple_power[0] > .4*self.simple_power[0].max()][-utils.analyze_accumulation(hf_sum, .8)]
+        f_th = self.simple_power[0][self.simple_power[0] > .4*self.simple_power[0].max()][-utils.analyze_accumulation(hf_sum, .2)]
 
         mean = numpy.mean(hf_sum)
         std = numpy.std(hf_sum)
         entropy = utils.calculate_entropy(hf_sum)
         nm_th = 1.0e9/f_th
-        pw_at_max_f = self.simple_power[1][-1]
-        skew = stats.skew(hf_sum)
+        pw_at_high_f = numpy.mean(self.simple_power[1][self.simple_power[0] > .9*self.simple_power[0].max()])
+        skew = stats.skew(numpy.log(hf_sum))
+        kurtosis = stats.kurtosis(hf_sum)
 
         if show:
             print "The mean is: %e" % mean
-            print "The std is: %e" % std
+            print "The std of the power spectrum tail is: %e" % std
             print "The entropy of frequencies is %e" % entropy
             print "The threshold distance is %f nanometers" % nm_th
-            print "Power at highest frequency %e" % pw_at_max_f
+            print "Power at high frequencies %e" % pw_at_high_f
 
-        return [mean, std, entropy, nm_th, pw_at_max_f, skew]
+        return [mean, std, entropy, nm_th, pw_at_high_f, skew, kurtosis]
 
     def show_all(self):
         fig, subplots = plt.subplots(1, 2)
@@ -258,6 +280,10 @@ class ImageResolution(Filter):
         plt.show()
 
     def crop(self):
+        """
+        Crops the input image into a square. This is required by the additive
+        1D power spectrum calculation routine
+        """
         dims = self.data[:].shape
 
         if dims[0] > dims[1]:
@@ -266,6 +292,10 @@ class ImageResolution(Filter):
         elif dims[1] > dims[0]:
             diff = int(0.5*(dims[1]-dims[0]))
             self.data = Image(self.data[:][:, diff: -diff], self.data.get_spacing())
+
+
+
+
 
 
 

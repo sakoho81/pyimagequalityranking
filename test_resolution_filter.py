@@ -18,9 +18,9 @@ def main():
 
     task = ImageResolution(image)
     task.calculate_power_spectrum(show=False)
-    task.calculate_azimuthal_average(show=False)
-    #task.calculate_summed_power(show=False)
-    task.show_all()
+    #task.calculate_radial_average(show=False)
+    task.calculate_summed_power(show=True)
+    #task.show_all()
 
 if __name__ == "__main__":
     main()
