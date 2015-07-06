@@ -1,3 +1,14 @@
+"""
+File:        myimage.py
+Author:      Sami Koho (sami.koho@gmail.com)
+
+Description:
+This file contains a simple class for storing image data.
+There's really nothing groundbreaking here. An attempt was
+made to create a simple class to contain only the
+functionality required by the PyImaeQuality software.
+"""
+
 import os
 import numpy
 
@@ -11,12 +22,17 @@ import utils
 
 class MyImage(object):
     """
-    A very simple class to contain image data 2D/3D
+    A very simple class to contain image data
     """
 
     @classmethod
     def get_image_from_imagej_tiff(cls, path):
-
+        """
+        A class method for opening a ImageJ tiff file. Using this method
+        will enable the use of correct pixel size during analysis.
+        :param path: Path to an image
+        :return:     An object of the MyImage class
+        """
         assert os.path.isfile(path)
         assert path.endswith(('.tif', '.tiff'))
 
@@ -34,6 +50,13 @@ class MyImage(object):
 
     @classmethod
     def get_generic_image(cls, path):
+        """
+        A class method for opening all kinds of images. No attempt is made
+        to read any tags, as most image formats do not have them. The idea
+        was to keep this very simple and straightforward.
+        :param path: Path to an image
+        :return:     An object of the MyImage class
+        """
         assert os.path.isfile(path)
 
         image = numpy.array(Image.open(path))
@@ -61,32 +84,67 @@ class MyImage(object):
         return self.images[args]
 
     def __mul__(self, other):
-        if isinstance(other, Image):
+        if isinstance(other, MyImage):
             return MyImage(self.images * other.images, self.spacing)
         elif isinstance(other, (long, int, float, numpy.ndarray)):
             return MyImage(self.images * other, self.spacing)
         else:
             return None
 
+    def __sub__(self, other):
+        assert isinstance(other, MyImage)
+        assert other.get_dimensions() == self.get_dimensions()
+        result = (self.images.astype(numpy.int16) - other.images).clip(0, 255).astype(numpy.uint8)
+        return MyImage(result, self.spacing)
+
     def get_spacing(self):
+        """
+        Returns the pixel spacing information.
+        """
         return self.spacing
 
     def get_dimensions(self):
+        """
+        Returns the image dimensions
+        """
         return list(self.images.shape)
 
     def show(self):
+        """
+        Show a plot of the image
+        """
         plt.imshow(self.images, cmap=plt.cm.binary)
         plt.show()
 
     def get_channel(self, channel):
+        """
+        Returns a new image containing a single color channel from
+        a RGB image.
+        """
         return MyImage(self.images[:, :, channel], self.spacing)
 
     def is_rgb(self):
+        """
+        Check if the image is an RGB image.
+        """
+
         if len(self.images.shape) == 3:
             return True
         else:
             return False
 
+    def save(self, filename):
+        """
+        Saves the image using PIL image.save() routine
+        """
+        image = Image.fromarray(numpy.uint8(self.images))
+        image.save(filename)
+
+    def average(self):
+        """
+        :return: Average grayscale pixel value of the image
+        """
+        return numpy.mean(self.images)
 
 
 

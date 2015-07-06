@@ -1,3 +1,10 @@
+"""
+File:   test_rgb_channel_select.py
+Author: Sami Koho (sami.koho@gmail.com)
+
+Description:
+A small utility for testing the RGB channel extraction functionality
+"""
 import sys
 import os
 

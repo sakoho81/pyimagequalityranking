@@ -1,3 +1,14 @@
+"""
+File:        script_options.py
+Author:      Sami Koho (sami.koho@gmail.com
+
+Description:
+This file contains the various generic command line options
+for controlling the behaviour of the PyImageQuality software.
+In addition, some specific parameters are defined in the
+filters.py file
+"""
+
 import argparse
 
 
@@ -21,10 +32,13 @@ def get_quality_script_options(arguments):
     parser.add_argument(
         "--mode",
         choices=["file", "directory", "analyze", "plot"],
-        action="append"
+        action="append",
+        help="The argument containing the functionality of the main program"
+             "You can concatenate actions by defining multiple modes in a"
+             "single command, e.g. --mode=directory --mode=analyze"
     )
 
-    # Image I/O
+    # Parameters for controlling how image files are handled
     parser.add_argument(
         "--imagej",
         help="Defines wheter the image are in ImageJ tiff format, "
@@ -41,22 +55,33 @@ def get_quality_script_options(arguments):
         choices=[0, 1, 2],
         default=1
     )
-    parser.add_argument(
-        "--file-filter",
-        dest="file_filter",
-        default=None,
-        help="Define a common string in the files to be analysed"
-    )
+    # Parameters for controlling the way plot functionality works.
     parser.add_argument(
         "--result",
         default="average",
-        choices=["average", "fskew", "ientropy", "fentropy", "fstd", "fkurtosis", "fpw", "fmean"],
+        choices=["average", "fskew", "ientropy", "fentropy", "fstd", "fkurtosis", "fpw", "fmean", "icv"],
         help="Tell how you want the results to be calculated."
     )
     parser.add_argument(
         "--npics",
         type=int,
-        default=9
+        default=9,
+        help="Define how many images are shown in the plots"
+    )
+    # File filtering for batch mode processing
+    parser.add_argument(
+        "--average-filter",
+        dest="average_filter",
+        type=int,
+        default=0,
+        help="Analyze only images with similar amount of detail, by selecting a "
+             "grayscale average pixel value threshold here"
+    )
+    parser.add_argument(
+        "--file-filter",
+        dest="file_filter",
+        default=None,
+        help="Define a common string in the files to be analysed"
     )
 
     from filters import get_filter_options

@@ -1,3 +1,19 @@
+"""
+File:        filters.py
+Author:      Sami Koho (sami.koho@gmail.com)
+
+Description:
+This file contains the filters that are used for calculating the
+image quality parameters in the PyImageQuality software.
+-   The LocalImageQuality class is used to run spatial domain
+    analysis. It calculates the Shannon entropy value at a
+    masked part of an image
+-   The FrequencyQuality class is used to calculate statistical
+    quality parameters in the frequency domain. The calculations
+    are based on the analysis of the tail of the 1D power spect-
+    rum.
+"""
+
 import numpy
 from scipy import ndimage, fftpack, stats
 from matplotlib import pyplot as plt
@@ -9,6 +25,9 @@ import External.radial_profile as radprof
 import utils
 
 def get_filter_options(parser):
+    """
+    Command-line options for the image-quality filters
+    """
     assert isinstance(parser, argparse.ArgumentParser)
     group = parser.add_argument_group("Filters", "Options for the quality filters")
     group.add_argument(
@@ -64,9 +83,9 @@ class Filter(object):
 
 class LocalImageQuality(Filter):
     """
-    Quantification of image quality is based on local sampling of image
-    entropy. The samples are usually drawn from areas of highest amount
-    of details
+    This is a filter for quantifying  image quality, based on the calculation
+    of Shannon entropy at image neighborhoods that contain the highest amount
+    of detail.
     """
 
     def __init__(self, image, options, physical=False, verbal=False):
@@ -110,6 +129,9 @@ class LocalImageQuality(Filter):
             return Image(self.data_temp, self.spacing)
 
     def calculate_entropy(self):
+        """
+        Returns the Shannon entropy value of an image.
+        """
         # Calculate histogram
         histogram = ndimage.histogram(
             self.data_temp,
@@ -123,7 +145,11 @@ class LocalImageQuality(Filter):
         return -numpy.sum(histogram*numpy.log2(histogram))
 
     def find_sampling_positions(self):
-        peaks = numpy.percentile(self.data_temp, 100)
+        """
+        Create a mask by finding pixel positions in the smoothed image
+        that have pixel values higher than 80% of the maximum value.
+        """
+        peaks = numpy.percentile(self.data_temp, 80)
         mask = numpy.where(self.data_temp >= peaks, 1, 0)
         if self.options.invert_mask:
             return numpy.invert(mask.astype(bool))
@@ -131,6 +157,12 @@ class LocalImageQuality(Filter):
             return mask
 
     def calculate_image_quality(self, kernel=None, show=False):
+        """
+        Calculate an estimate for image quality, based on the
+        Shannon entropy measure. options.use_mask switch can
+        be used to limit the entropy calculation to detailed
+        parts of the image.
+        """
         if self.options.use_mask:
             if kernel is not None:
                 self.set_smoothing_kernel_size(kernel)
@@ -142,7 +174,6 @@ class LocalImageQuality(Filter):
 
             positions = self.find_sampling_positions()
             self.data_temp = self.data[:][numpy.nonzero(positions)]
-
             if show:
                 Image(self.data[:]*positions, self.spacing).show()
         else:
@@ -151,7 +182,13 @@ class LocalImageQuality(Filter):
         return self.calculate_entropy()
 
 
-class ImageResolution(Filter):
+class FrequencyQuality(Filter):
+    """
+    A filter for calculated image-quality related parameters in the frequency
+    domain. First a one-dimensional power spectrum is calculated for an image,
+    after which various types of statistics are calculated for the power
+    spectrum tail (frequencies > 40% of Nyquist)
+    """
     def __init__(self, image, options, physical=False, verbal=False):
 
         Filter.__init__(self, image, options, physical=physical, verbal=verbal)
@@ -209,10 +246,10 @@ class ImageResolution(Filter):
 
     def calculate_summed_power(self, show=False):
         """
-        I don't know how "kosher" this method is but here I pack the power spectrum into
-        N/2+1 long 1D array, by taking advantage of the fourier spectrum symmetries.
-        The highest frequency in the centered power spectrum can be found at all the four
-        extremities of the image.
+        Calculate a 1D power spectrum fro 2D power spectrum, by summing all rows and
+        columns, and then summing negative and positive frequencies, to form a
+        N/2+1 long 1D array. This approach is significantly faster to calculate
+        than the radial average.
         """
 
         sum = numpy.zeros(self.power.shape[0])
@@ -227,7 +264,7 @@ class ImageResolution(Filter):
         self.simple_power = [f_k, sum]
 
         if show:
-            plt.plot(self.simple_power)
+            plt.plot(self.simple_power[0], self.simple_power[1], linewidth=2, color="red")
             plt.ylabel("Total power")
             plt.yscale('log')
             plt.xlabel('Frequency')
@@ -235,12 +272,12 @@ class ImageResolution(Filter):
 
     def analyze_power_spectrum(self, show_intermediate=False, show=False):
         """
-        The calculated resolution in the histogram depends on the number of
-        histogram bins. I have to convert the bins into physical distances.
+        Run the image quality analysis on the power spectrum
         """
         assert self.data is not None, "Please set an image to process"
         self.calculate_power_spectrum(show=show_intermediate)
 
+        # Choose a method to calculate 1D power spectrum
         if self.options.power_averaging == "radial":
             self.calculate_radial_average(show=show_intermediate)
         elif self.options.power_averaging == "additive":
@@ -248,9 +285,11 @@ class ImageResolution(Filter):
         else:
             raise NotImplementedError
 
+        # Extract the power spectrum tail
         hf_sum = self.simple_power[1][self.simple_power[0] > .4*self.simple_power[0].max()]
-        f_th = self.simple_power[0][self.simple_power[0] > .4*self.simple_power[0].max()][-utils.analyze_accumulation(hf_sum, .2)]
 
+        # Calculate parameters
+        f_th = self.simple_power[0][self.simple_power[0] > .4*self.simple_power[0].max()][-utils.analyze_accumulation(hf_sum, .2)]
         mean = numpy.mean(hf_sum)
         std = numpy.std(hf_sum)
         entropy = utils.calculate_entropy(hf_sum)
@@ -269,6 +308,9 @@ class ImageResolution(Filter):
         return [mean, std, entropy, nm_th, pw_at_high_f, skew, kurtosis]
 
     def show_all(self):
+        """
+        A small utility to show a plot of the 2D and 1D power spectra
+        """
         fig, subplots = plt.subplots(1, 2)
         if self.power is not None:
             subplots[0].imshow(numpy.log10(self.power))

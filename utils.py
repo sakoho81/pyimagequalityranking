@@ -1,7 +1,18 @@
+"""
+File:        utils.py
+Author:      sami.koho@gmail.com
+
+Description:
+Various sorts of small utilities for the PyImageQuality software.
+Contains all kinds of code snippets that did not find a home in
+the main modules.
+"""
+
 from scipy import ndimage
 import numpy
 from matplotlib import pyplot as plt
 import os
+
 
 def rescale_to_min_max(data, data_min, data_max):
     """
@@ -29,7 +40,11 @@ def rescale_to_min_max(data, data_min, data_max):
         else:
             return data_min / data.min()*data
 
+
 def analyze_accumulation(x, fraction):
+    """
+    Analyze the accumulation by starting from the end of the data.
+    """
     assert 0.0 < fraction <= 1.0
     final = fraction*x.sum()
     index = 1
@@ -37,19 +52,32 @@ def analyze_accumulation(x, fraction):
         index += 1
     return index
 
+
 def calculate_entropy(data):
-        # Calculate histogram
-        histogram = ndimage.histogram(
-            data,
-            data.min(),
-            data.max(), 50)
-        # Exclude zeros
-        histogram = histogram[numpy.nonzero(histogram)]
-        # Normalize histogram bins to sum to one
-        histogram = histogram.astype(float)/histogram.sum()
-        return -numpy.sum(histogram*numpy.log2(histogram))
+    """
+    Calculate the Shannon entropy for data
+    """
+    # Calculate histogram
+    histogram = ndimage.histogram(
+        data,
+        data.min(),
+        data.max(), 50)
+    # Exclude zeros
+    histogram = histogram[numpy.nonzero(histogram)]
+    # Normalize histogram bins to sum to one
+    histogram = histogram.astype(float)/histogram.sum()
+    return -numpy.sum(histogram*numpy.log2(histogram))
+
 
 def show_pics_from_disk(filenames, title="Image collage"):
+    """
+    A utility for creating a collage of images, to be shown
+    in a single plot. The images are loaded from disk according
+    to the provided filenames:
+    :param filenames:   A list containing the image filenames
+    :param title:       Name of the plot
+    :return:            Nothing
+    """
     if len(filenames) > 1:
         if 4 < len(filenames) <= 9:
             fig, subplots = plt.subplots(3, 3)
@@ -71,7 +99,7 @@ def show_pics_from_disk(filenames, title="Image collage"):
             while j < subplots.shape[1] and k < len(filenames):
                 print filenames[i+j]
                 subplots[i, j].imshow(plt.imread(filenames[k]), cmap=plt.cm.hot)
-                subplots[i, j].set_title(k)
+                subplots[i, j].set_title(os.path.basename(filenames[k]))
                 subplots[i, j].axis("off")
                 k += 1
                 j += 1
