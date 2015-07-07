@@ -122,13 +122,13 @@ def main():
         assert os.path.isdir(path), path
 
         # Create output directory
-        output_dir = datetime.datetime.now().strftime("%Y-%m-%d")+'_EIQ_output'
+        output_dir = datetime.datetime.now().strftime("%Y-%m-%d")+'_PyIQ_output'
         output_dir = os.path.join(options.working_directory, output_dir)
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
         # Create output file
         date_now = datetime.datetime.now().strftime("%H-%M-%S")
-        file_name = date_now + '_EIQ_out' + '.csv'
+        file_name = date_now + '_PyIQ_out' + '.csv'
         file_path = os.path.join(output_dir, file_name)
         output_file = open(file_path, 'wt')
         output_writer = csv.writer(
@@ -222,10 +222,10 @@ def main():
     # a subset of highest and lowest ranked images (the amount of images to show is
     # controlled by the options.npics parameter
         if csv_data is None:
-            path = os.path.join(options.working_directory, options.file)
-            assert os.path.isfile(path), "Not a valid file %s" % path
+            file_path = os.path.join(options.working_directory, options.file)
+            assert os.path.isfile(file_path), "Not a valid file %s" % path
             assert path.endswith(".csv"), "Unknown suffix %s" % path.split(".")[-1]
-            csv_data = pandas.read_csv(path)
+            csv_data = pandas.read_csv(file_path)
         if options.result == "average":
             csv_data["Average"] = csv_data[["InvSpectSTDNorm", "SpatEntNorm"]].mean(axis=1)
             csv_data.sort(column="Average", ascending=False, inplace=True)
@@ -254,7 +254,7 @@ def main():
         utils.show_pics_from_disk(best_pics, title="BEST PICS")
         utils.show_pics_from_disk(worst_pics, title="WORST PICS")
 
-        csv_data.to_csv(path, index=False)
+        csv_data.to_csv(file_path, index=False)
 
 
 if __name__ == "__main__":
