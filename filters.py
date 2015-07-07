@@ -24,7 +24,7 @@ from myimage import MyImage as Image
 import External.radial_profile as radprof
 import utils
 
-def get_filter_options(parser):
+def get_options(parser):
     """
     Command-line options for the image-quality filters
     """

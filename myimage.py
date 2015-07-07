@@ -6,11 +6,12 @@ Description:
 This file contains a simple class for storing image data.
 There's really nothing groundbreaking here. An attempt was
 made to create a simple class to contain only the
-functionality required by the PyImaeQuality software.
+functionality required by the PyImageQualityRanking software.
 """
 
 import os
 import numpy
+import argparse
 
 from PIL import Image
 from PIL.TiffImagePlugin import X_RESOLUTION, Y_RESOLUTION
@@ -18,6 +19,47 @@ from matplotlib import pyplot as plt
 from math import log10
 
 import utils
+
+
+def get_options(parser):
+    """
+    Command-line options for the image I/O
+    """
+    assert isinstance(parser, argparse.ArgumentParser)
+    group = parser.add_argument_group("Image I/O", "Options for image file I/O")
+    # Parameters for controlling how image files are handled
+    group.add_argument(
+        "--imagej",
+        help="Defines wheter the image are in ImageJ tiff format, "
+             "and thus contain the pixel size info etc in the TIFF tags. "
+             "By default true",
+        action="store_true"
+    )
+    group.add_argument(
+        "--rgb-channel",
+        help="Select which channel in an RGB image is to be used for quality"
+             " analysis",
+        dest="rgb_channel",
+        type=int,
+        choices=[0, 1, 2],
+        default=1
+    )
+     # File filtering for batch mode processing
+    parser.add_argument(
+        "--average-filter",
+        dest="average_filter",
+        type=int,
+        default=0,
+        help="Analyze only images with similar amount of detail, by selecting a "
+             "grayscale average pixel value threshold here"
+    )
+    parser.add_argument(
+        "--file-filter",
+        dest="file_filter",
+        default=None,
+        help="Define a common string in the files to be analysed"
+    )
+    return parser
 
 
 class MyImage(object):

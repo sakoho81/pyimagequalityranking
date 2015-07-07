@@ -205,12 +205,12 @@ def main():
         csv_data["SpectHighPowerNorm"] = csv_data.fMaxPw/csv_data.fMaxPw.max()
 
         # Create output directory
-        output_dir = datetime.datetime.now().strftime("%Y-%m-%d")+'_EIQ_output'
+        output_dir = datetime.datetime.now().strftime("%Y-%m-%d")+'_PyIQ_output'
         output_dir = os.path.join(options.working_directory, output_dir)
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
         date_now = datetime.datetime.now().strftime("%H-%M-%S")
-        file_name = date_now + '_EIQ_analyze_out' + '.csv'
+        file_name = date_now + '_PyIQ_analyze_out' + '.csv'
         file_path = os.path.join(output_dir, file_name)
 
         csv_data.to_csv(file_path)
@@ -255,7 +255,6 @@ def main():
         utils.show_pics_from_disk(worst_pics, title="WORST PICS")
 
         csv_data.to_csv(path, index=False)
-
 
 
 if __name__ == "__main__":
