@@ -12,13 +12,12 @@ functionality required by the PyImageQualityRanking software.
 import os
 import numpy
 import argparse
-
 from PIL import Image
 from PIL.TiffImagePlugin import X_RESOLUTION, Y_RESOLUTION
 from matplotlib import pyplot as plt
 from math import log10
 
-import utils
+from pyimq import utils
 
 
 def get_options(parser):
@@ -164,6 +163,9 @@ class MyImage(object):
         a RGB image.
         """
         return MyImage(self.images[:, :, channel], self.spacing)
+
+    def get_array(self):
+        return self.images
 
     def is_rgb(self):
         """

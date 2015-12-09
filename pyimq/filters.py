@@ -20,9 +20,10 @@ from matplotlib import pyplot as plt
 from math import floor
 import argparse
 
-from myimage import MyImage as Image
-import External.radial_profile as radprof
-import utils
+from pyimq import external as radprof, utils
+
+from pyimq.myimage import MyImage as Image
+
 
 def get_options(parser):
     """
@@ -337,6 +338,48 @@ class FrequencyQuality(Filter):
 
 
 
+class SpectralMoments(FrequencyQuality):
+
+    def calculate_percent_spectrum(self):
+        self.simple_power[1] /= (self.simple_power[1].sum()/100)
+
+    def calculate_spectral_moments(self, show_intermediate=False):
+        """
+        Run the image quality analysis on the power spectrum
+        """
+        assert self.data is not None, "Please set an image to process"
+        self.calculate_power_spectrum(show=show_intermediate)
+
+        # Choose a method to calculate 1D power spectrum
+        if self.options.power_averaging == "radial":
+            self.calculate_radial_average(show=show_intermediate)
+        elif self.options.power_averaging == "additive":
+            self.calculate_summed_power(show=show_intermediate)
+        else:
+            raise NotImplementedError
+
+        self.calculate_percent_spectrum()
+
+        bin_index = numpy.arange(1, self.simple_power[1].shape[0]+1)
+
+        return (self.simple_power[1]*numpy.log10(bin_index)).sum()
+
+
+class BrennerImageQuality(Filter):
+
+    def __init__(self, image, options, physical=False, verbal=False):
+
+        Filter.__init__(self, image, options, physical, verbal)
+
+    def calculate_brenner_quality(self):
+        data = self.data.get_array()
+        rows = data.shape[0]
+        columns = data.shape[1]-2
+        temp = numpy.zeros((rows, columns))
+
+        temp[:] = ((data[:, 0:-2] - data[:, 2:])**2)
+
+        return temp.sum()
 
 
 

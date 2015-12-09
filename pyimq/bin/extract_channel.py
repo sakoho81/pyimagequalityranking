@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- python -*-
+
 """
 File:        utils_extract_channel.py
 Author:      Sami Koho (sami.koho@gmail.com)
@@ -10,7 +13,9 @@ original path containing the images.
 
 import sys
 import os
-import myimage
+
+from pyimq import myimage
+
 
 def main():
     path = sys.argv[1]

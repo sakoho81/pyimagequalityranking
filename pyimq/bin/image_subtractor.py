@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- python -*-
+
 """
 File: utils_image_subtractor.py
 Author: Sami Koho (sami.koho@gmail.com)
@@ -13,7 +16,9 @@ of course quite easily be modified into any kind of a batch processing task.
 
 import sys
 import os
-import myimage
+
+from pyimq import myimage
+
 
 def main():
     path = sys.argv[1]

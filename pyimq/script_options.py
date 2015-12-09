@@ -11,6 +11,8 @@ filters.py file
 
 import argparse
 
+from pyimq import filters, myimage
+
 
 def get_quality_script_options(arguments):
     parser = argparse.ArgumentParser(
@@ -51,9 +53,7 @@ def get_quality_script_options(arguments):
         help="Define how many images are shown in the plots"
     )
 
-    import filters
     parser = filters.get_options(parser)
-    import myimage
     parser = myimage.get_options(parser)
     return parser.parse_args(arguments)
 

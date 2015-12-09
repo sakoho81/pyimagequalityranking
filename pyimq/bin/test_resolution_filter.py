@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- python -*-
+
 """
 File: test_resolution_filter.py
 Author: Sami Koho
@@ -12,8 +15,9 @@ import sys
 import os
 
 from myimage import MyImage as Image
-from filters import FrequencyQuality
-import script_options
+from pyimq import script_options
+from pyimq.filters import FrequencyQuality
+
 
 def main():
 

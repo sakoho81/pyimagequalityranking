@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- python -*-
+
 """
 File:        main.py
 Author:      Sami Koho (sami.koho@gmail.com)
@@ -60,15 +63,11 @@ of packages in scientific articles by citing the corresponding papers:
 
 import sys
 import os
+import datetime
 
 import csv
-import datetime
 import pandas
-
-import filters
-import myimage
-import utils
-import script_options
+from pyimq import filters, script_options, utils, myimage
 
 
 def main():
@@ -134,7 +133,7 @@ def main():
         output_writer = csv.writer(
             output_file, quoting=csv.QUOTE_NONNUMERIC, delimiter=",")
         output_writer.writerow(
-            ("Filename", "tEntropy", "fMean", "fSTD", "fEntropy",
+            ("Filename", "tEntropy", "tBrenner", "fMoments", "fMean", "fSTD", "fEntropy",
              "fTh", "fMaxPw", "Skew", "Kurtosis"))
 
         for image_name in os.listdir(path):
@@ -169,7 +168,16 @@ def main():
                 # Run frequency domain analysis
                 task2 = filters.FrequencyQuality(image, options)
                 results = task2.analyze_power_spectrum()
+
+                task3 = filters.SpectralMoments(image, options)
+                moments = task3.calculate_spectral_moments()
+
+                task4 = filters.BrennerImageQuality(image, options)
+                brenner = task4.calculate_brenner_quality()
+
                 # Save results
+                results.insert(0, moments)
+                results.insert(0, brenner)
                 results.insert(0, entropy)
                 results.insert(0, os.path.join(path, image_name))
                 output_writer.writerow(results)
@@ -203,6 +211,8 @@ def main():
         csv_data["SkewNorm"] = 1 - abs(csv_data.Skew)/abs(csv_data.Skew).max()
         csv_data["KurtosisNorm"] = abs(csv_data.Kurtosis)/abs(csv_data.Kurtosis).max()
         csv_data["SpectHighPowerNorm"] = csv_data.fMaxPw/csv_data.fMaxPw.max()
+        csv_data["BrennerNorm"] = csv_data.tBrenner/csv_data.tBrenner.max()
+        csv_data["SpectMomentsNorm"] = csv_data.fMoments/csv_data.fMoments.max()
 
         # Create output directory
         output_dir = datetime.datetime.now().strftime("%Y-%m-%d")+'_PyIQ_output'
@@ -228,23 +238,23 @@ def main():
             csv_data = pandas.read_csv(file_path)
         if options.result == "average":
             csv_data["Average"] = csv_data[["InvSpectSTDNorm", "SpatEntNorm"]].mean(axis=1)
-            csv_data.sort(column="Average", ascending=False, inplace=True)
+            csv_data.sort(columns="Average", ascending=False, inplace=True)
         elif options.result == "fskew":
-            csv_data.sort(column="SkewNorm", ascending=False, inplace=True)
+            csv_data.sort(columns="SkewNorm", ascending=False, inplace=True)
         elif options.result == "fentropy":
-            csv_data.sort(column="SpectEntNorm", ascending=False, inplace=True)
+            csv_data.sort(columns="SpectEntNorm", ascending=False, inplace=True)
         elif options.result == "ientropy":
-            csv_data.sort(column="SpatEntNorm", ascending=False, inplace=True)
+            csv_data.sort(columns="SpatEntNorm", ascending=False, inplace=True)
         elif options.result == "icv":
-            csv_data.sort(column="SpatEntNorm", ascending=False, inplace=True)
+            csv_data.sort(columns="SpatEntNorm", ascending=False, inplace=True)
         elif options.result == "fstd":
-            csv_data.sort(column="SpectSTDNorm", ascending=False, inplace=True)
+            csv_data.sort(columns="SpectSTDNorm", ascending=False, inplace=True)
         elif options.result == "fkurtosis":
-            csv_data.sort(column="KurtosisNorm", ascending=False, inplace=True)
+            csv_data.sort(columns="KurtosisNorm", ascending=False, inplace=True)
         elif options.result == "fpw":
-            csv_data.sort(column="SpectHighPowerNorm", ascending=False, inplace=True)
+            csv_data.sort(columns="SpectHighPowerNorm", ascending=False, inplace=True)
         elif options.result == "fmean":
-            csv_data.sort(column="SpectHighPowerNorm", ascending=False, inplace=True)
+            csv_data.sort(columns="SpectHighPowerNorm", ascending=False, inplace=True)
         else:
             print "Unknown results sorting method %s" % options.result
             sys.exit()

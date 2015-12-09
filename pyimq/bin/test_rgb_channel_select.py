@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- python -*-
+
 """
 File:   test_rgb_channel_select.py
 Author: Sami Koho (sami.koho@gmail.com)
@@ -8,7 +11,8 @@ A small utility for testing the RGB channel extraction functionality
 import sys
 import os
 
-from myimage import MyImage
+from pyimq.myimage import MyImage
+
 
 path_prefix = "/home/sami/Pictures/Quality/GFP_PFCA_dsRedLNCaP_in_Col/"
 
