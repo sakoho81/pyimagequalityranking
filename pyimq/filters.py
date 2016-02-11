@@ -370,6 +370,7 @@ class BrennerImageQuality(Filter):
     def __init__(self, image, options, physical=False, verbal=False):
 
         Filter.__init__(self, image, options, physical, verbal)
+        self.crop()
 
     def calculate_brenner_quality(self):
         data = self.data.get_array()
@@ -380,6 +381,21 @@ class BrennerImageQuality(Filter):
         temp[:] = ((data[:, 0:-2] - data[:, 2:])**2)
 
         return temp.sum()
+
+    def crop(self):
+        """
+        This is not really required by the Brenner metric, but in order to compare
+        with the spectral domain metrics, the image is cropped here as well, in case.
+        the image width and height do not match.
+        """
+        dims = self.data[:].shape
+
+        if dims[0] > dims[1]:
+            diff = int(0.5*(dims[0]-dims[1]))
+            self.data = Image(self.data[:][diff: -diff, :], self.data.get_spacing())
+        elif dims[1] > dims[0]:
+            diff = int(0.5*(dims[1]-dims[0]))
+            self.data = Image(self.data[:][:, diff: -diff], self.data.get_spacing())
 
 
 

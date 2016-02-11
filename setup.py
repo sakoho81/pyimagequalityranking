@@ -4,10 +4,11 @@ setup(
     name='PyImageQualityRanking',
     version='0.1',
     packages=find_packages(),
-    install_requires = ['numpy', 'scipy', 'pandas', 'matplotlib'],
+    install_requires=['numpy', 'scipy', 'pandas', 'matplotlib'],
     entry_points={
         'console_scripts': [
-            'pyimq.main = pyimq.bin.__main__:main'
+            'pyimq.main = pyimq.bin.__main__:main',
+            'pyimq.blurseq = pyimq.bin.create_blur_sequence:main'
         ]
     },
     platforms=["any"],
