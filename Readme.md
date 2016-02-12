@@ -1,20 +1,21 @@
 # PyImageQualityRanking 
 ## An Image quality ranking tool for Microscopy
 
-*PyImageQualityRanking* is a small software utility that allows the ordering/sorting of image datasets, according to image-quality-related statistical parameters. The software is distributed under BSD open source license.
+*PyImageQualityRanking* is a small software utility that allows the ordering/sorting of image datasets, according to image-quality related statistical parameters. The software is distributed under BSD open source license.
 
 ### How does it work?
-The purpose of this tool is to extract image-quality-related statistics, and to use them to rank the quality of images within that dataset. Such tool could be used for example to find the highest-quality images in a dataset, or to identify and discard low-quality images. Instead  of trying to estimate image quality. The purpose of the software is to figure out, whether certain images were clearly better than the rest in the dataset, or vice versa.
+The purpose of this tool is to extract image-quality related statistics from a series of images (a dataset) that can then be used to sort/rank the images according to their relative quality. Such tool could be used for example to find the highest-quality images in a dataset, or to identify and discard low-quality images. The purpose of the software is to figure out, whether certain images were clearly better than the rest in the dataset, or vice versa.
 
-Our aim was to develop a simple tool that would not involve any complex mathematical models or training schemes – but that could still provide robust quality-related measures, that could be taken advantage of in a variety of applications. The analysis was also intended to be simple and fast, to allow its easy integration to any image-processing workflow – including online during-acquisition analysis. 
+Our aim was to develop a simple tool that would not involve any complex mathematical models or training schemes – but that could still provide robust quality-related measures, that could be taken advantage of in a variety of applications. The analysis was also intended to be simple and fast, to allow its easy integration to any image-processing workflow – including real-time during-acquisition analysis. 
 
 *PyImageQualityRanking* software implements two kinds of parameters to rank image quality. 
 
 1. The quality of the image histogram (contrast) is estimated by a Shannon entropy measure, that is calculated at a masked region of an image, to allow the comparison of images with varying content. 
 2. The image detail is estimated in the frequency domain, by calculating a number of parameters from the power spectrum. The calculations focus on the power spectrum tail (>40% of Nyquist frequency), because that allowed us to focus exclusively on the fine detail, which is strongly affected by noise and blur.
+3. The software also contains our implementations of two microscopy autofocus metrics that were used as comparison for our method.
 
 ### How do I install it?
-*PyImageQualityRanking* was written in Python, utilizing standard SciPy scientific libraries. The software should thus work on all the common operating systems. *PyImageQualityRanking* does not, at the moment require any installation as such, but it can be run directly from the source code directory. However, one should make sure that the [SciPy libraries](http://www.scipy.org/install.html) have been installed on the computer's Python environment. Typically, if using Anaconda distribution etc. these libraries should have been installed by default.
+*PyImageQualityRanking* was written in Python, utilizing standard SciPy scientific libraries. The software should thus work on all the common operating systems. *PyImageQualityRanking* is distributed as a standard python package and it can be installed using the **setup.py** script. However, you should make sure that you have installed *setup_tools* as well as the [SciPy libraries](http://www.scipy.org/install.html) in the computer's Python environment. Typically, if using Anaconda distribution etc. these libraries should have been installed by default.
 
 Please refer to the Wiki page for usage examples.
 
