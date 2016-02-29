@@ -1,8 +1,8 @@
 """
 Sami Koho - 2015 - sami.koho@gmail.com
 
-A small utility that generates a series of Gaussian blurred images from a
-single base image. This utility was use to create an autofocus function test
+A small utility that generates Gaussian blurred images from a
+series of base images. This utility was use to create an autofocus function test
 dataset.
 
 """
