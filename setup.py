@@ -8,7 +8,8 @@ setup(
     entry_points={
         'console_scripts': [
             'pyimq.main = pyimq.bin.__main__:main',
-            'pyimq.blurseq = pyimq.bin.create_blur_sequence:main'
+            'pyimq.blurseq = pyimq.bin.create_blur_sequence:main',
+            'pyimq.subjective = pyimq.bin.subjective:main'
         ]
     },
     platforms=["any"],

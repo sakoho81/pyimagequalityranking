@@ -58,5 +58,18 @@ def get_quality_script_options(arguments):
     return parser.parse_args(arguments)
 
 
+def get_subjective_ranking_options(arguments):
+    parser = argparse.ArgumentParser(
+        description="Command line arguments for the "
+                    "subjective image quality ranking"
+                    "script."
+    )
+    parser.add_argument(
+        "--working-directory",
+        dest="working_directory",
+        help="Defines the location of the working directory",
+        default="/home/sami/Pictures/Quality"
+    )
+    return parser.parse_args(arguments)
 
 
