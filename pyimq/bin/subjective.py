@@ -10,10 +10,12 @@ Description:
 A utility script for performing subjective image rankings. One image is
 displayed at a time, after which it is ranked on 1-5 scale, 5 being the
 best and 1 the worst. The script can be run multiple times to collect
-several ranking results in a single csv file.
+several ranking results in a single csv file. At every run the data
+is shuffled in order to not repeat the same image sequence twice.
 """
 
-import sys, os
+import sys
+import os
 import pandas
 import matplotlib.pyplot as plt
 import pyimq.script_options as script_options
@@ -21,7 +23,6 @@ import pyimq.script_options as script_options
 
 def main():
 
-    print "Hello"
     options = script_options.get_subjective_ranking_options(sys.argv[1:])
     path = options.working_directory
     index = 0
@@ -49,24 +50,34 @@ def main():
             file_names.append(image_name)
         csv_data["Filename"] = file_names
 
-    result_name = "Result_" + index
+    result_name = "Result_" + str(index)
     results = []
 
+    # Plot settings
     plt.ion()
+    plt.axis('off')
 
+    # Shuffle the data frame so that the order of the displayed images is mixed every time.
+    csv_data = csv_data.sample(frac=1)
     print "Images are graded on a scale 1-5, where 1 denotes a very bad image " \
           "and 5 an excellent image"
 
     for image_name in csv_data["Filename"]:
         real_path = os.path.join(path, image_name)
         image = plt.imread(real_path)
-        image *= (255.0/image.max())
 
-        plt.imshow(image, cmap=plt.cm.gray)
+        plt.imshow(image, cmap=plt.cm.hot, vmax=image.max(), vmin=image.min())
 
         success = False
         while not success:
-            result = int(raw_input("Give grade: ").trim())
+            input = raw_input("Give grade: ")
+
+            if input.isdigit():
+                result = int(input)
+            else:
+                print "Please give a numeric grade 1-5."
+                continue
+
             if 1 <= result <= 5:
                 success = True
                 results.append(result)
