@@ -134,7 +134,7 @@ def main():
             output_file, quoting=csv.QUOTE_NONNUMERIC, delimiter=",")
         output_writer.writerow(
             ("Filename", "tEntropy", "tBrenner", "fMoments", "fMean", "fSTD", "fEntropy",
-             "fTh", "fMaxPw", "Skew", "Kurtosis"))
+             "fTh", "fMaxPw", "Skew", "Kurtosis", "MeanBin"))
 
         for image_name in os.listdir(path):
             if options.file_filter is None or options.file_filter in image_name:
@@ -211,6 +211,7 @@ def main():
         csv_data["SkewNorm"] = 1 - abs(csv_data.Skew)/abs(csv_data.Skew).max()
         csv_data["KurtosisNorm"] = abs(csv_data.Kurtosis)/abs(csv_data.Kurtosis).max()
         csv_data["SpectHighPowerNorm"] = csv_data.fMaxPw/csv_data.fMaxPw.max()
+        csv_data["MeanBinNorm"] = csv_data.MeanBin/csv_data.MeanBin.max()
         csv_data["BrennerNorm"] = csv_data.tBrenner/csv_data.tBrenner.max()
         csv_data["SpectMomentsNorm"] = csv_data.fMoments/csv_data.fMoments.max()
 
@@ -255,6 +256,8 @@ def main():
             csv_data.sort(columns="SpectHighPowerNorm", ascending=False, inplace=True)
         elif options.result == "fmean":
             csv_data.sort(columns="SpectHighPowerNorm", ascending=False, inplace=True)
+        elif options.result == "meanbin":
+            csv_data.sort(columns="MeanBinNorm", ascending=False, inplace=True)
         else:
             print "Unknown results sorting method %s" % options.result
             sys.exit()

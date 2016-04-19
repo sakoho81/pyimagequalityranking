@@ -3,7 +3,7 @@ import numpy as np
 def azimuthalAverage(
         image, center=None, stddev=False, returnradii=False, return_nr=False,
         binsize=0.5, weights=None, steps=False, interpnan=False, left=None,
-        right=None, mask=None, normalize=False
+        right=None, mask=None, normalize=False, sum_bin=False
 ):
     """
     Calculate the azimuthally averaged radial profile.
@@ -77,6 +77,8 @@ def azimuthalAverage(
     bin_centers = bin_centers[0:nbins_true]
     if stddev:
         radial_prof = np.array([image.flat[mask*(whichbin==b)].std() for b in xrange(1,nbins+1)])
+    elif sum_bin:
+        radial_prof = np.array([((image*weights).flat[mask*(whichbin == b)].sum()) for b in xrange(1, nbins_true+1)])
     else:
         radial_prof = np.array([((image*weights).flat[mask*(whichbin == b)].sum()) / (weights.flat[mask*(whichbin==b)].sum()) for b in xrange(1, nbins_true+1)])
 

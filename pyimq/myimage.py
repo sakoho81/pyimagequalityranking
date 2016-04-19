@@ -11,13 +11,12 @@ functionality required by the PyImageQualityRanking software.
 
 import os
 import numpy
+import scipy.ndimage.interpolation as itp
 import argparse
 from PIL import Image
 from PIL.TiffImagePlugin import X_RESOLUTION, Y_RESOLUTION
 from matplotlib import pyplot as plt
 from math import log10
-
-from pyimq import utils
 
 
 def get_options(parser):
@@ -82,7 +81,7 @@ class MyImage(object):
         xresolution = image.tag.tags[X_RESOLUTION][0][0]
         yresolution = image.tag.tags[Y_RESOLUTION][0][0]
 
-        data = utils.rescale_to_min_max(numpy.array(image), 0, 255)
+        #data = utils.rescale_to_min_max(numpy.array(image), 0, 255)
 
         if data.shape[0] == 1:
             data = data[0]
@@ -101,7 +100,7 @@ class MyImage(object):
         assert os.path.isfile(path)
 
         image = numpy.array(Image.open(path))
-        image = utils.rescale_to_min_max(image, 0, 255)
+        #image = utils.rescale_to_min_max(image, 0, 255)
 
         return cls(images=image, spacing=[1, 1])
 
@@ -148,7 +147,7 @@ class MyImage(object):
         """
         Returns the image dimensions
         """
-        return list(self.images.shape)
+        return tuple(self.images.shape)
 
     def show(self):
         """
@@ -166,6 +165,9 @@ class MyImage(object):
 
     def get_array(self):
         return self.images
+
+    def get_min_and_max(self):
+        return self.images.min(), self.images.max()
 
     def is_rgb(self):
         """
@@ -189,6 +191,34 @@ class MyImage(object):
         :return: Average grayscale pixel value of the image
         """
         return numpy.mean(self.images)
+
+    def crop_to_rectangle(self):
+        """
+        Crop the image into a rectangle. This is sometimes useful, especially
+        in methods employing FFT.
+        """
+        dims = self.images.shape
+
+        if dims[0] > dims[1]:
+            diff = int(0.5*(dims[0]-dims[1]))
+            self.images = self.images[diff: -diff, :]
+        elif dims[1] > dims[0]:
+            diff = int(0.5*(dims[1]-dims[0]))
+            self.images = self.images[:, diff: -diff]
+
+    def resize(self, size):
+        """
+        Resize the image, using cubic interpolation.
+
+        :param size: A tuple of new image dimensions.
+
+        """
+        assert isinstance(size, tuple)
+        zoom = [float(a)/b for a, b in zip(size, self.images.shape)]
+        print "The zoom is %s" % zoom
+
+        self.images = itp.zoom(self.images, tuple(zoom), order=3)
+
 
 
 

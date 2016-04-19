@@ -20,17 +20,20 @@ from matplotlib import pyplot as plt
 from math import floor
 import argparse
 
-from pyimq import external as radprof, utils
+import pyimq.utils as utils
+import pyimq.external.radial_profile as radprof
 
 from pyimq.myimage import MyImage as Image
 
 
-def get_options(parser):
+def get_common_options(parser):
     """
-    Command-line options for the image-quality filters
+    Common command-line options for the image-quality filters
     """
     assert isinstance(parser, argparse.ArgumentParser)
-    group = parser.add_argument_group("Filters", "Options for the quality filters")
+    group = parser.add_argument_group(
+        "Filters common", "Common options for the quality filters"
+    )
     group.add_argument(
         "--power-averaging",
         dest="power_averaging",
@@ -51,6 +54,17 @@ def get_options(parser):
     group.add_argument(
         "--invert-mask",
         dest="invert_mask",
+        action="store_true"
+    )
+    group.add_argument(
+        "--power-threshold",
+        dest="power_threshold",
+        type=float,
+        default=0.4
+    )
+    group.add_argument(
+        "--show-plots",
+        dest="show_plots",
         action="store_true"
     )
     return parser
@@ -206,7 +220,7 @@ class FrequencyQuality(Filter):
     def set_image(self, image):
         self.data = image
 
-    def calculate_power_spectrum(self, show=False):
+    def calculate_power_spectrum(self):
         """
         A function that is used to calculate a centered 2D power spectrum.
         Additionally the power spectrum can be normalized by image dimensions
@@ -218,10 +232,8 @@ class FrequencyQuality(Filter):
             mean = numpy.mean(self.data[:])
             self.power = self.power/(dims*mean)
 
-        if show:
-            Image(numpy.log10(self.power), self.spacing).show()
 
-    def calculate_radial_average(self, bin_size=2, show=False):
+    def calculate_radial_average(self, bin_size=2):
         """
         Convert a 2D centered power spectrum into 1D by averaging spectral
         power at different radiuses from the zero frequency center
@@ -230,7 +242,6 @@ class FrequencyQuality(Filter):
             self.power,
             binsize=bin_size,
             returnradii=True,
-            normalize=True
         )
         dx = self.data.get_spacing()[0]
 
@@ -239,13 +250,13 @@ class FrequencyQuality(Filter):
 
         self.simple_power = [f_k, average]
 
-        if show:
+        if self.options.show_plots:
             plt.plot(numpy.log10(self.simple_power[0]))
             plt.ylabel("Average power")
             plt.xlabel("Frequency")
             plt.show()
 
-    def calculate_summed_power(self, show=False):
+    def calculate_summed_power(self):
         """
         Calculate a 1D power spectrum fro 2D power spectrum, by summing all rows and
         columns, and then summing negative and positive frequencies, to form a
@@ -264,33 +275,33 @@ class FrequencyQuality(Filter):
 
         self.simple_power = [f_k, sum]
 
-        if show:
+        if self.options.show_plots:
             plt.plot(self.simple_power[0], self.simple_power[1], linewidth=2, color="red")
             plt.ylabel("Total power")
             plt.yscale('log')
             plt.xlabel('Frequency')
             plt.show()
 
-    def analyze_power_spectrum(self, show_intermediate=False, show=False):
+    def analyze_power_spectrum(self):
         """
         Run the image quality analysis on the power spectrum
         """
         assert self.data is not None, "Please set an image to process"
-        self.calculate_power_spectrum(show=show_intermediate)
+        self.calculate_power_spectrum()
 
         # Choose a method to calculate 1D power spectrum
         if self.options.power_averaging == "radial":
-            self.calculate_radial_average(show=show_intermediate)
+            self.calculate_radial_average()
         elif self.options.power_averaging == "additive":
-            self.calculate_summed_power(show=show_intermediate)
+            self.calculate_summed_power()
         else:
             raise NotImplementedError
 
         # Extract the power spectrum tail
-        hf_sum = self.simple_power[1][self.simple_power[0] > .4*self.simple_power[0].max()]
+        hf_sum = self.simple_power[1][self.simple_power[0] > self.options.power_threshold*self.simple_power[0].max()]
 
         # Calculate parameters
-        f_th = self.simple_power[0][self.simple_power[0] > .4*self.simple_power[0].max()][-utils.analyze_accumulation(hf_sum, .2)]
+        f_th = self.simple_power[0][self.simple_power[0] > self.options.power_threshold*self.simple_power[0].max()][-utils.analyze_accumulation(hf_sum, .2)]
         mean = numpy.mean(hf_sum)
         std = numpy.std(hf_sum)
         entropy = utils.calculate_entropy(hf_sum)
@@ -298,15 +309,9 @@ class FrequencyQuality(Filter):
         pw_at_high_f = numpy.mean(self.simple_power[1][self.simple_power[0] > .9*self.simple_power[0].max()])
         skew = stats.skew(numpy.log(hf_sum))
         kurtosis = stats.kurtosis(hf_sum)
+        mean_bin = numpy.mean(hf_sum[0:5])
 
-        if show:
-            print "The mean is: %e" % mean
-            print "The std of the power spectrum tail is: %e" % std
-            print "The entropy of frequencies is %e" % entropy
-            print "The threshold distance is %f nanometers" % nm_th
-            print "Power at high frequencies %e" % pw_at_high_f
-
-        return [mean, std, entropy, nm_th, pw_at_high_f, skew, kurtosis]
+        return [mean, std, entropy, nm_th, pw_at_high_f, skew, kurtosis, mean_bin]
 
     def show_all(self):
         """
@@ -321,6 +326,9 @@ class FrequencyQuality(Filter):
             subplots[1].plot(self.simple_power[0], self.simple_power[1], linewidth=1)
             subplots[1].set_yscale('log')
         plt.show()
+
+    def get_power_spectrum(self):
+        return self.simple_power
 
     def crop(self):
         """
@@ -337,24 +345,23 @@ class FrequencyQuality(Filter):
             self.data = Image(self.data[:][:, diff: -diff], self.data.get_spacing())
 
 
-
 class SpectralMoments(FrequencyQuality):
 
     def calculate_percent_spectrum(self):
         self.simple_power[1] /= (self.simple_power[1].sum()/100)
 
-    def calculate_spectral_moments(self, show_intermediate=False):
+    def calculate_spectral_moments(self):
         """
         Run the image quality analysis on the power spectrum
         """
         assert self.data is not None, "Please set an image to process"
-        self.calculate_power_spectrum(show=show_intermediate)
+        self.calculate_power_spectrum()
 
         # Choose a method to calculate 1D power spectrum
         if self.options.power_averaging == "radial":
-            self.calculate_radial_average(show=show_intermediate)
+            self.calculate_radial_average()
         elif self.options.power_averaging == "additive":
-            self.calculate_summed_power(show=show_intermediate)
+            self.calculate_summed_power()
         else:
             raise NotImplementedError
 
@@ -396,7 +403,6 @@ class BrennerImageQuality(Filter):
         elif dims[1] > dims[0]:
             diff = int(0.5*(dims[1]-dims[0]))
             self.data = Image(self.data[:][:, diff: -diff], self.data.get_spacing())
-
 
 
 

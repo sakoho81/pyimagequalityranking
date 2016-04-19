@@ -17,7 +17,7 @@ def main():
         print "Please specify a path to an image file"
         sys.exit(1)
 
-    original = misc.imread(sys.argv[1])
+    original = misc.imread(sys.argv[1], mode='P')
 
     path_parts = os.path.split(sys.argv[1])
     output_dir = os.path.join(path_parts[0], "Blurred")

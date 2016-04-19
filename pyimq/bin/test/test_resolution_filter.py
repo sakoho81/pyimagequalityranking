@@ -36,8 +36,8 @@ def main():
     image = Image.get_image_from_imagej_tiff(real_path)
 
     task = FrequencyQuality(image, options)
-    task.calculate_power_spectrum(show=True)
-    task.calculate_summed_power(show=True)
+    task.calculate_power_spectrum()
+    task.calculate_summed_power()
 
 if __name__ == "__main__":
     main()

@@ -43,7 +43,8 @@ def get_quality_script_options(arguments):
     parser.add_argument(
         "--result",
         default="average",
-        choices=["average", "fskew", "ientropy", "fentropy", "fstd", "fkurtosis", "fpw", "fmean", "icv"],
+        choices=["average", "fskew", "ientropy", "fentropy", "fstd",
+                 "fkurtosis", "fpw", "fmean", "icv", "meanbin"],
         help="Tell how you want the results to be calculated."
     )
     parser.add_argument(
@@ -53,7 +54,30 @@ def get_quality_script_options(arguments):
         help="Define how many images are shown in the plots"
     )
 
-    parser = filters.get_options(parser)
+    parser = filters.get_common_options(parser)
+    parser = myimage.get_options(parser)
+    return parser.parse_args(arguments)
+
+
+def get_power_script_options(arguments):
+    parser = argparse.ArgumentParser(
+        description="Command line options for the power.py script that can be"
+                    "used to save the power spectra of images within a "
+                    "directory"
+    )
+    parser.add_argument(
+        "--working-directory",
+        dest="working_directory",
+        help="Defines the location of the working directory",
+        default="/home/sami/Pictures/Quality"
+    )
+    parser.add_argument(
+        "--image-size",
+        dest="image_size",
+        type=int,
+        default=512
+    )
+    parser = filters.get_common_options(parser)
     parser = myimage.get_options(parser)
     return parser.parse_args(arguments)
 
@@ -70,6 +94,7 @@ def get_subjective_ranking_options(arguments):
         help="Defines the location of the working directory",
         default="/home/sami/Pictures/Quality"
     )
+
     return parser.parse_args(arguments)
 
 
