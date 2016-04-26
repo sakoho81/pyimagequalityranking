@@ -31,7 +31,7 @@ def main():
         if not real_path.endswith((".jpg", ".tif", ".tiff", ".png")):
             continue
 
-        original = misc.imread(real_path, mode="P")
+        original = misc.imread(real_path, flatten=True)
         path_parts = os.path.split(real_path)
         extension = path_parts[1].split(".")[1]
         base_name = path_parts[1].split(".")[0]

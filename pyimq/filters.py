@@ -63,6 +63,12 @@ def get_common_options(parser):
         default=0.4
     )
     group.add_argument(
+        "--spatial-threshold",
+        dest="spatial_threshold",
+        type=int,
+        default=80
+    )
+    group.add_argument(
         "--show-plots",
         dest="show_plots",
         action="store_true"
@@ -164,7 +170,7 @@ class LocalImageQuality(Filter):
         Create a mask by finding pixel positions in the smoothed image
         that have pixel values higher than 80% of the maximum value.
         """
-        peaks = numpy.percentile(self.data_temp, 80)
+        peaks = numpy.percentile(self.data_temp, self.options.spatial_threshold)
         mask = numpy.where(self.data_temp >= peaks, 1, 0)
         if self.options.invert_mask:
             return numpy.invert(mask.astype(bool))

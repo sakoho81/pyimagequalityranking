@@ -37,15 +37,17 @@ def main():
 
         # Get image
         image = myimage.MyImage.get_generic_image(path_in)
+
+        # Only grayscale images are processed. If the input is an RGB image,
+        # a channel can be chosen for processing.
+        if image.is_rgb():
+            image = image.get_channel(options.rgb_channel)
+
         image.crop_to_rectangle()
         for dim in image.get_dimensions():
             if dim != options.image_size:
                 image.resize((options.image_size, options.image_size))
                 break
-        # Only grayscale images are processed. If the input is an RGB image,
-        # a channel can be chosen for processing.
-        if image.is_rgb():
-            image = image.get_channel(options.rgb_channel)
 
         task = filters.FrequencyQuality(image, options)
         task.calculate_power_spectrum()
