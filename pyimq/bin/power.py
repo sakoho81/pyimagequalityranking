@@ -1,6 +1,15 @@
 #!/usr/bin/env python
 # -*- python -*-
+"""
+File: power.py
+Author: Sami Koho (sami.koho@gmail.com)
 
+Description:
+
+A utility script for extracting 1D power spectra of all images within
+a defined input directory. The spectra are saved in a single csv
+file, each column denoting a single image.
+"""
 import sys
 import os
 import datetime

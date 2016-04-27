@@ -60,6 +60,10 @@ def get_quality_script_options(arguments):
 
 
 def get_power_script_options(arguments):
+    """
+    Command line arguments for the power.py script that is used to calculate
+    1D power spectra of images within a directory.
+    """
     parser = argparse.ArgumentParser(
         description="Command line options for the power.py script that can be"
                     "used to save the power spectra of images within a "
@@ -83,6 +87,10 @@ def get_power_script_options(arguments):
 
 
 def get_subjective_ranking_options(arguments):
+    """
+    Command line arguments for the subjective.py script that can be used
+    to obtain subjective opinion scores for image quality.
+    """
     parser = argparse.ArgumentParser(
         description="Command line arguments for the "
                     "subjective image quality ranking"

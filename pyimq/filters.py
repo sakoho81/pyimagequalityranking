@@ -1,3 +1,4 @@
+# coding=utf-8
 """
 File:        filters.py
 Author:      Sami Koho (sami.koho@gmail.com)
@@ -12,6 +13,8 @@ image quality parameters in the PyImageQuality software.
     quality parameters in the frequency domain. The calculations
     are based on the analysis of the tail of the 1D power spect-
     rum.
+-   Brenner and Spectral domain autofocus metrics were impelemnted
+    as well, based on the two classes above.
 """
 
 import numpy
@@ -217,7 +220,7 @@ class FrequencyQuality(Filter):
         # Additive form of power spectrum calculation requires a square shaped
         # image
         if self.options.power_averaging == "additive":
-            self.crop()
+            self.data.crop_to_rectangle()
 
         self.simple_power = None
         self.power = None
@@ -334,24 +337,22 @@ class FrequencyQuality(Filter):
         plt.show()
 
     def get_power_spectrum(self):
+        """
+        Returns the calculated 1D power spectrum. Please make sure to create
+        power spectrum before calling this.
+        """
+        assert self.simple_power is not None
         return self.simple_power
 
-    def crop(self):
-        """
-        Crops the input image into a square. This is required by the additive
-        1D power spectrum calculation routine
-        """
-        dims = self.data[:].shape
-
-        if dims[0] > dims[1]:
-            diff = int(0.5*(dims[0]-dims[1]))
-            self.data = Image(self.data[:][diff: -diff, :], self.data.get_spacing())
-        elif dims[1] > dims[0]:
-            diff = int(0.5*(dims[1]-dims[0]))
-            self.data = Image(self.data[:][:, diff: -diff], self.data.get_spacing())
 
 
 class SpectralMoments(FrequencyQuality):
+    """
+    Our implementation of the Spectral Moments autofocus metric
+    Firestone, L. et al (1991). Comparison of autofocus methods for automated
+    microscopy. Cytometry, 12(3), 195–206.
+    http://doi.org/10.1002/cyto.990120302
+    """
 
     def calculate_percent_spectrum(self):
         self.simple_power[1] /= (self.simple_power[1].sum()/100)
@@ -379,11 +380,18 @@ class SpectralMoments(FrequencyQuality):
 
 
 class BrennerImageQuality(Filter):
-
+    """
+    Our implementation of the Brenner autofocus metric
+    Brenner, J. F. et al (1976). An automated microscope for cytologic research
+    a preliminary evaluation. Journal of Histochemistry & Cytochemistry, 24(1),
+    100–111. http://doi.org/10.1177/24.1.1254907
+    """
     def __init__(self, image, options, physical=False, verbal=False):
 
         Filter.__init__(self, image, options, physical, verbal)
-        self.crop()
+        # This is not really necessary. It was just added in order to compare
+        # with the frequency domain measures.
+        self.data.crop_to_rectangle()
 
     def calculate_brenner_quality(self):
         data = self.data.get_array()
@@ -395,20 +403,7 @@ class BrennerImageQuality(Filter):
 
         return temp.sum()
 
-    def crop(self):
-        """
-        This is not really required by the Brenner metric, but in order to compare
-        with the spectral domain metrics, the image is cropped here as well, in case.
-        the image width and height do not match.
-        """
-        dims = self.data[:].shape
 
-        if dims[0] > dims[1]:
-            diff = int(0.5*(dims[0]-dims[1]))
-            self.data = Image(self.data[:][diff: -diff, :], self.data.get_spacing())
-        elif dims[1] > dims[0]:
-            diff = int(0.5*(dims[1]-dims[0]))
-            self.data = Image(self.data[:][:, diff: -diff], self.data.get_spacing())
 
 
 
