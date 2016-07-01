@@ -1,5 +1,5 @@
 
-The PyImageQuality software is licensed under BSD open-source license.
+The *PyImageQualityRanking* software is licensed under BSD open-source license.
 
 Copyright (c) 2015, Sami Koho, Laboratory of Biophysics, University of Turku.
 All rights reserved.
@@ -29,6 +29,6 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 In addition to the terms of the license, we ask to acknowledge the use
-of packages in scientific articles by citing the corresponding papers:
+of packages in scientific articles by citing the following paper:
 
-**citation here**
+[*Koho, S., Fazeli, E., Eriksson, J.E. & Hänninen, P.E. (2016) Image Quality Ranking Method for Microscopy. Scientific Reports, 6, 28962.*](http://www.nature.com/articles/srep28962)

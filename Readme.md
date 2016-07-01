@@ -11,19 +11,19 @@ Our aim was to develop a simple tool that would not involve any complex mathemat
 *PyImageQualityRanking* software implements two kinds of parameters to rank image quality. 
 
 1. The quality of the image histogram (contrast) is estimated by a Shannon entropy measure, that is calculated at a masked region of an image, to allow the comparison of images with varying content. 
-2. The image detail is estimated in the frequency domain, by calculating a number of parameters from the power spectrum. The calculations focus on the power spectrum tail (>40% of Nyquist frequency), because that allowed us to focus exclusively on the fine detail, which is strongly affected by noise and blur.
+2. The image detail is estimated in the frequency domain, by calculating a number of parameters from the power spectrum. The calculations focus on the power spectrum tail (usually >40% of max. frequency)
 3. The software also contains our implementations of two microscopy autofocus metrics that were used as comparison for our method.
 
 ### How do I install it?
-*PyImageQualityRanking* was written in Python, utilizing standard SciPy scientific libraries. The software should thus work on all the common operating systems. *PyImageQualityRanking* is distributed as a standard python package and it can be installed using the **setup.py** script. However, you should make sure that you have installed *setup_tools* as well as the [SciPy libraries](http://www.scipy.org/install.html) in the computer's Python environment. Typically, if using Anaconda distribution etc. these libraries should have been installed by default.
+*PyImageQualityRanking* was written in Python, utilizing standard SciPy scientific libraries. The software should thus work on all the common operating systems. *PyImageQualityRanking* is distributed as a standard python package and it can be installed using the **setup.py** script. However, you should make sure that you have installed the [SciPy libraries](http://www.scipy.org/install.html) in the computer's Python environment. Typically, if using Anaconda distribution etc. these libraries should have been installed by default.
 
 Please refer to the Wiki page for usage examples.
 
 ### Contribution guidelines ###
 
-The *PyImageQualityRanking* is distributed under BSD open-source license. You can use the software in any way you like; we would just ask you to aknowledge our work:
+The *PyImageQualityRanking* is distributed under [BSD open-source license](License). You can use the software in any way you like; we would just ask you to aknowledge our work:
 
-publication here
+[*Koho, S., Fazeli, E., Eriksson, J.E. & Hänninen, P.E. (2016) Image Quality Ranking Method for Microscopy. Scientific Reports, 6, 28962.*](http://www.nature.com/articles/srep28962)
 
 All kinds of contributions: new features, bug fixes, documentation, usage examples etc. are welcome.
 
