@@ -21,7 +21,7 @@ Please refer to the Wiki page for usage examples.
 
 ### Contribution guidelines ###
 
-The *PyImageQualityRanking* is distributed under [BSD open-source license](License). You can use the software in any way you like; we would just ask you to aknowledge our work:
+The *PyImageQualityRanking* is distributed under [BSD open-source license](https://bitbucket.org/sakoho81/pyimagequalityranking/wiki/License). You can use the software in any way you like; we would just ask you to aknowledge our work:
 
 [*Koho, S., Fazeli, E., Eriksson, J.E. & Hänninen, P.E. (2016) Image Quality Ranking Method for Microscopy. Scientific Reports, 6, 28962.*](http://www.nature.com/articles/srep28962)
 
