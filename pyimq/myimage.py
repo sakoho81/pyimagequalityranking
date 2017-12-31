@@ -16,7 +16,7 @@ import argparse
 from PIL import Image
 from PIL.TiffImagePlugin import X_RESOLUTION, Y_RESOLUTION
 from matplotlib import pyplot as plt
-from math import log10
+from math import log10, ceil, floor
 
 
 def get_options(parser):
@@ -194,17 +194,17 @@ class MyImage(object):
 
     def crop_to_rectangle(self):
         """
-        Crop the image into a rectangle. This is sometimes useful, especially
+        Crop the image into a square. This is sometimes useful, especially
         in methods employing FFT.
         """
         dims = self.images.shape
 
         if dims[0] > dims[1]:
-            diff = int(0.5*(dims[0]-dims[1]))
-            self.images = self.images[diff: -diff, :]
+            diff = 0.5*(dims[0]-dims[1])
+            self.images = self.images[int(ceil(diff)): -int(floor(diff)), :]
         elif dims[1] > dims[0]:
-            diff = int(0.5*(dims[1]-dims[0]))
-            self.images = self.images[:, diff: -diff]
+            diff = 0.5*(dims[1]-dims[0])
+            self.images = self.images[:, int(ceil(diff)): -int(floor(diff))]
 
     def resize(self, size):
         """
