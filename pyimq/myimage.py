@@ -201,10 +201,10 @@ class MyImage(object):
 
         if dims[0] > dims[1]:
             diff = 0.5*(dims[0]-dims[1])
-            self.images = self.images[int(ceil(diff)): -int(floor(diff)), :]
+            self.images = self.images[int(floor(diff)): -int(ceil(diff)), :]
         elif dims[1] > dims[0]:
             diff = 0.5*(dims[1]-dims[0])
-            self.images = self.images[:, int(ceil(diff)): -int(floor(diff))]
+            self.images = self.images[:, int(floor(diff)): -int(ceil(diff))]
 
     def resize(self, size):
         """
