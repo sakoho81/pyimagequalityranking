@@ -1,3 +1,7 @@
+*Update 2019 Sami: Please take a look at the [Microscope Image Processing Library (MIPLIB)](https://github.com/sakoho81/miplib). I am not going to update the PyImq package anymore (it should however continue working just fine).*
+
+
+
 # PyImageQualityRanking 
 ## An Image quality ranking tool for Microscopy
 
