@@ -129,7 +129,7 @@ class LocalImageQuality(Filter):
             for i in self.spacing:
                 sizes.append(size)
         else:
-            print "Unknown size type"
+            print("Unknown size type")
             return
 
         if self.physical is True:
