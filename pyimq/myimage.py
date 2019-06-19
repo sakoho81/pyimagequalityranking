@@ -215,7 +215,7 @@ class MyImage(object):
         """
         assert isinstance(size, tuple)
         zoom = [float(a)/b for a, b in zip(size, self.images.shape)]
-        print "The zoom is %s" % zoom
+        print("The zoom is %s" % zoom)
 
         self.images = itp.zoom(self.images, tuple(zoom), order=3)
 

@@ -19,8 +19,8 @@ path_prefix = "/home/sami/Pictures/Quality/GFP_PFCA_dsRedLNCaP_in_Col/"
 
 def main():
     if len(sys.argv) < 3:
-        print "You must define a path to an image and a color channel to " \
-              "extract"
+        print("You must define a path to an image and a color channel to " \
+              "extract")
         sys.exit(1)
 
     path = sys.argv[1]
