@@ -3,6 +3,9 @@
 
 
 # PyImageQualityRanking 
+
+Please also see the original author's wiki: https://bitbucket.org/sakoho81/pyimagequalityranking/wiki/Home
+
 ## An Image quality ranking tool for Microscopy
 
 *PyImageQualityRanking* is a small software utility that allows the ordering/sorting of image datasets, according to image-quality related statistical parameters. The software is distributed under BSD open source license.

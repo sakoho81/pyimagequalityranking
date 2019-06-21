@@ -30,7 +30,7 @@ def main():
     elif os.path.isfile(os.path.join(path, filename)):
         real_path = os.path.join(path, filename)
     else:
-        print "Not a valid file!"
+        print("Not a valid file!")
         sys.exit()
 
     image = Image.get_image_from_imagej_tiff(real_path)
