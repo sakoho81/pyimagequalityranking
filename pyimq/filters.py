@@ -83,8 +83,8 @@ class Filter(object):
     """
     A base class for a filter utilizing Image class object
     """
-    def __init__(self, image, options, physical=False, verbal=False):
 
+    def __init__(self, image, options, physical=False, verbal=False):
         assert isinstance(image, Image)
         self.options = options
 
@@ -134,11 +134,11 @@ class LocalImageQuality(Filter):
 
         if self.physical is True:
             for i in range(len(sizes)):
-                self.kernel_size[i] = sizes[i]/self.spacing[i]
+                self.kernel_size[i] = sizes[i] / self.spacing[i]
                 assert self.kernel_size[i] < self.dimensions[i]
         else:
             self.kernel_size = sizes
-            assert self.kernel_size < self.dimensions, \
+            assert all(x < y for x, y in zip(self.kernel_size, self.dimensions)), \
                 "Kernel can not be larger than image"
 
     def run_mean_smoothing(self, return_result=False):
@@ -165,8 +165,8 @@ class LocalImageQuality(Filter):
         # Exclude zeros
         histogram = histogram[numpy.nonzero(histogram)]
         # Normalize histogram bins to sum to one
-        histogram = histogram.astype(float)/histogram.sum()
-        return -numpy.sum(histogram*numpy.log2(histogram))
+        histogram = histogram.astype(float) / histogram.sum()
+        return -numpy.sum(histogram * numpy.log2(histogram))
 
     def find_sampling_positions(self):
         """
@@ -199,7 +199,7 @@ class LocalImageQuality(Filter):
             positions = self.find_sampling_positions()
             self.data_temp = self.data[:][numpy.nonzero(positions)]
             if show:
-                Image(self.data[:]*positions, self.spacing).show()
+                Image(self.data[:] * positions, self.spacing).show()
         else:
             self.data_temp = self.data[:]
 
@@ -213,6 +213,7 @@ class FrequencyQuality(Filter):
     after which various types of statistics are calculated for the power
     spectrum tail (frequencies > 40% of Nyquist)
     """
+
     def __init__(self, image, options, physical=False, verbal=False):
 
         Filter.__init__(self, image, options, physical=physical, verbal=verbal)
@@ -235,12 +236,11 @@ class FrequencyQuality(Filter):
         Additionally the power spectrum can be normalized by image dimensions
         and image intensity mean, if necessary.
         """
-        self.power = numpy.abs(fftpack.fftshift(fftpack.fft2(self.data[:])))**2
+        self.power = numpy.abs(fftpack.fftshift(fftpack.fft2(self.data[:]))) ** 2
         if self.options.normalize_power:
-            dims = self.data[:].shape[0]*self.data[:].shape[1]
+            dims = self.data[:].shape[0] * self.data[:].shape[1]
             mean = numpy.mean(self.data[:])
-            self.power = self.power/(dims*mean)
-
+            self.power = self.power / (dims * mean)
 
     def calculate_radial_average(self, bin_size=2):
         """
@@ -254,8 +254,8 @@ class FrequencyQuality(Filter):
         )
         dx = self.data.get_spacing()[0]
 
-        size = int(float(self.power.shape[0])/2)
-        f_k = (bin_centers/size) * (1.0/(2*dx))
+        size = int(float(self.power.shape[0]) / 2)
+        f_k = (bin_centers / size) * (1.0 / (2 * dx))
 
         self.simple_power = [f_k, average]
 
@@ -276,11 +276,11 @@ class FrequencyQuality(Filter):
         sum = numpy.zeros(self.power.shape[0])
         for i in range(len(self.power.shape)):
             sum += numpy.sum(self.power, axis=i)
-        zero = floor(float(sum.size)/2)
-        sum[zero+1:] = sum[zero+1:]+sum[:zero-1][::-1]
+        zero = floor(float(sum.size) / 2)
+        sum[zero + 1:] = sum[zero + 1:] + sum[:zero - 1][::-1]
         sum = sum[zero:]
         dx = self.data.get_spacing()[0]
-        f_k = numpy.linspace(0, 1, sum.size)*(1.0/(2*dx))
+        f_k = numpy.linspace(0, 1, sum.size) * (1.0 / (2 * dx))
 
         self.simple_power = [f_k, sum]
 
@@ -307,15 +307,16 @@ class FrequencyQuality(Filter):
             raise NotImplementedError
 
         # Extract the power spectrum tail
-        hf_sum = self.simple_power[1][self.simple_power[0] > self.options.power_threshold*self.simple_power[0].max()]
+        hf_sum = self.simple_power[1][self.simple_power[0] > self.options.power_threshold * self.simple_power[0].max()]
 
         # Calculate parameters
-        f_th = self.simple_power[0][self.simple_power[0] > self.options.power_threshold*self.simple_power[0].max()][-utils.analyze_accumulation(hf_sum, .2)]
+        f_th = self.simple_power[0][self.simple_power[0] > self.options.power_threshold * self.simple_power[0].max()][
+            -utils.analyze_accumulation(hf_sum, .2)]
         mean = numpy.mean(hf_sum)
         std = numpy.std(hf_sum)
         entropy = utils.calculate_entropy(hf_sum)
-        nm_th = 1.0e9/f_th
-        pw_at_high_f = numpy.mean(self.simple_power[1][self.simple_power[0] > .9*self.simple_power[0].max()])
+        nm_th = 1.0e9 / f_th
+        pw_at_high_f = numpy.mean(self.simple_power[1][self.simple_power[0] > .9 * self.simple_power[0].max()])
         skew = stats.skew(numpy.log(hf_sum))
         kurtosis = stats.kurtosis(hf_sum)
         mean_bin = numpy.mean(hf_sum[0:5])
@@ -330,8 +331,8 @@ class FrequencyQuality(Filter):
         if self.power is not None:
             subplots[0].imshow(numpy.log10(self.power))
         if self.simple_power is not None:
-            index = int(len(self.simple_power[0])*.4)
-            #subplots[1].plot(self.simple_power[0][index:], self.simple_power[1][index:], linewidth=1)
+            index = int(len(self.simple_power[0]) * .4)
+            # subplots[1].plot(self.simple_power[0][index:], self.simple_power[1][index:], linewidth=1)
             subplots[1].plot(self.simple_power[0], self.simple_power[1], linewidth=1)
             subplots[1].set_yscale('log')
         plt.show()
@@ -345,7 +346,6 @@ class FrequencyQuality(Filter):
         return self.simple_power
 
 
-
 class SpectralMoments(FrequencyQuality):
     """
     Our implementation of the Spectral Moments autofocus metric
@@ -355,7 +355,7 @@ class SpectralMoments(FrequencyQuality):
     """
 
     def calculate_percent_spectrum(self):
-        self.simple_power[1] /= (self.simple_power[1].sum()/100)
+        self.simple_power[1] /= (self.simple_power[1].sum() / 100)
 
     def calculate_spectral_moments(self):
         """
@@ -374,9 +374,9 @@ class SpectralMoments(FrequencyQuality):
 
         self.calculate_percent_spectrum()
 
-        bin_index = numpy.arange(1, self.simple_power[1].shape[0]+1)
+        bin_index = numpy.arange(1, self.simple_power[1].shape[0] + 1)
 
-        return (self.simple_power[1]*numpy.log10(bin_index)).sum()
+        return (self.simple_power[1] * numpy.log10(bin_index)).sum()
 
 
 class BrennerImageQuality(Filter):
@@ -386,8 +386,8 @@ class BrennerImageQuality(Filter):
     a preliminary evaluation. Journal of Histochemistry & Cytochemistry, 24(1),
     100–111. http://doi.org/10.1177/24.1.1254907
     """
-    def __init__(self, image, options, physical=False, verbal=False):
 
+    def __init__(self, image, options, physical=False, verbal=False):
         Filter.__init__(self, image, options, physical, verbal)
         # This is not really necessary. It was just added in order to compare
         # with the frequency domain measures.
@@ -396,25 +396,9 @@ class BrennerImageQuality(Filter):
     def calculate_brenner_quality(self):
         data = self.data.get_array()
         rows = data.shape[0]
-        columns = data.shape[1]-2
+        columns = data.shape[1] - 2
         temp = numpy.zeros((rows, columns))
 
-        temp[:] = ((data[:, 0:-2] - data[:, 2:])**2)
+        temp[:] = ((data[:, 0:-2] - data[:, 2:]) ** 2)
 
         return temp.sum()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
