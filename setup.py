@@ -16,10 +16,18 @@ setup(
     },
     platforms=["any"],
     url='https://github.org/sakoho81/pyimagequalityranking',
+    download_url="https://github.com/sakoho81/pyimagequalityranking/archive/v0.1.tar.gz",
     license='BSD',
     author='Sami Koho',
     author_email='sami.koho@gmail.com',
     description='pyimq is a small software utility that allows '
                 'the ordering/sorting of image datasets, according to '
-                'image-quality related statistical parameters'
+                'image-quality related statistical parameters',
+    classifiers = [
+        'Development Status :: 3 - Alpha',
+        'Intended Audience :: Developers',
+        'Topic :: Software Development :: Libraries :: Python Modules',
+        'License :: OSI Approved :: BSD License',
+        'Programming Language :: Python :: 3'
+    ]
 )
