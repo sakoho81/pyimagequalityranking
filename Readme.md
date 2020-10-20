@@ -16,7 +16,7 @@ Our aim was to develop a simple tool that would not involve any complex mathemat
 3. The software also contains our implementations of two microscopy autofocus metrics that were used as comparison for our method.
 
 ### How do I install it?
-*PyImageQualityRanking* was written utilizing standard SciPy scientific libraries. The software should thus work on all the common operating systems. *PyImageQualityRanking* is distributed as a standard python package and it can be installed using the **setup.py** script. However, you should make sure that you have installed the [SciPy libraries](http://www.scipy.org/install.html) in the computer's Python environment. Typically, if using Anaconda distribution etc. these libraries should have been installed by default.
+*PyImageQualityRanking* was written utilizing standard SciPy scientific libraries. The software should thus work on all the common operating systems. *PyImageQualityRanking* is distributed as a standard python package and it can be installed from PyPI with ```pip install pyimq```, or from source, using the ```setup.py``` script (if you want to further develop the code). 
 
 Please refer to the Wiki page for usage examples.
 
