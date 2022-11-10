@@ -45,7 +45,7 @@ def main():
         # Get valid file names
         for image_name in os.listdir(path):
             real_path = os.path.join(path, image_name)
-            if not os.path.isfile(real_path) or not real_path.endswith((".jpg", ".tif", ".tiff", ".png")):
+            if not os.path.isfile(real_path) or not real_path.endswith((".jpg", ".tif", ".tiff", ".png", ".bmp")):
                 continue
             file_names.append(image_name)
         csv_data["Filename"] = file_names

@@ -28,7 +28,7 @@ def main():
     # Process every image in the input path
     for image_name in os.listdir(path):
         real_path = os.path.join(path, image_name)
-        if not real_path.endswith((".jpg", ".tif", ".tiff", ".png")):
+        if not real_path.endswith((".jpg", ".tif", ".tiff", ".png", ".bmp")):
             continue
 
         original = misc.imread(real_path, flatten=True)

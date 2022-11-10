@@ -40,7 +40,7 @@ def main():
 
     # Scan through images
     for image_in in os.listdir(path):
-        if not image_in.endswith((".jpg", ".tif", ".tiff", ".png")):
+        if not image_in.endswith((".jpg", ".tif", ".tiff", ".png", ".bmp")):
             continue
         path_in = os.path.join(path, image_in)
 
