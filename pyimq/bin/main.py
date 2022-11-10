@@ -140,7 +140,7 @@ def main():
             if options.file_filter is None or options.file_filter in image_name:
                 real_path = os.path.join(path, image_name)
                 # Only process images
-                if not os.path.isfile(real_path) or not real_path.endswith((".jpg", ".tif", ".tiff", ".png")):
+                if not os.path.isfile(real_path) or not real_path.endswith((".jpg", ".tif", ".tiff", ".png", ".bmp")):
                     continue
                 # ImageJ files have particular TIFF tags that can be processed correctly
                 # with the options.imagej switch
